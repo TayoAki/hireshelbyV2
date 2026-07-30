@@ -23,7 +23,7 @@ test.beforeEach(async ({ page }) => {
       {
         id: "other-community",
         name: "Design studio",
-        normalized_host: "design-studio.communities.buzz.xyz",
+        normalized_host: "design-studio.communities.hireshelby.com",
       },
     ],
   });

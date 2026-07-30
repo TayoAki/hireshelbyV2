@@ -1,6 +1,6 @@
 //! Reproducible blind Pocket TTS quality corpus generator.
 //!
-//! Renders Buzz's production prompt preparation and post-processing across:
+//! Renders HireShelby's production prompt preparation and post-processing across:
 //! INT8/FP32 × per-sentence/grouped generation. The generated filenames are
 //! deterministically blinded; keep `key.json` away from listeners until their
 //! scoring sheet is complete.

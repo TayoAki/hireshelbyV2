@@ -4,7 +4,7 @@ import 'package:buzz/shared/theme/theme.dart';
 import 'package:buzz/shared/widgets/frosted_app_bar.dart';
 
 void main() {
-  group('Buzz theme catalog entries', () {
+  group('HireShelby theme catalog entries', () {
     test('both halves are in the catalog', () {
       expect(findTheme(buzzThemeName), isNotNull);
       expect(findTheme(buzzDarkThemeName), isNotNull);
@@ -31,13 +31,13 @@ void main() {
       expect(themePairFor(buzzDarkThemeName), buzzThemeName);
     });
 
-    test('appear as a single System-mode option labelled "Buzz"', () {
+    test('appear as a single System-mode option labelled "HireShelby"', () {
       final paired = themeGroups().paired.map((t) => t.name);
       expect(paired, contains(buzzThemeName));
       expect(paired, isNot(contains(buzzDarkThemeName)));
-      expect(pairedThemeLabel(buzzThemeName), 'Buzz');
-      expect(themeSelectionLabel(buzzThemeName, ThemeMode.system), 'Buzz');
-      expect(themeSelectionLabel(buzzDarkThemeName, ThemeMode.system), 'Buzz');
+      expect(pairedThemeLabel(buzzThemeName), 'HireShelby');
+      expect(themeSelectionLabel(buzzThemeName, ThemeMode.system), 'HireShelby');
+      expect(themeSelectionLabel(buzzDarkThemeName, ThemeMode.system), 'HireShelby');
     });
 
     test('resolve across brightnesses like any other pair', () {
@@ -59,7 +59,7 @@ void main() {
     });
 
     test(
-      'fallbacks expose the effective Buzz theme for gradient selection',
+      'fallbacks expose the effective HireShelby theme for gradient selection',
       () {
         final coerced = resolveSchemes('nord', ThemeMode.light);
         expect(coerced.lightTheme?.name, buzzThemeName);
@@ -85,7 +85,7 @@ void main() {
   });
 
   group('buzzTopSectionGradient', () {
-    test('is null for non-Buzz themes', () {
+    test('is null for non-HireShelby themes', () {
       expect(buzzTopSectionGradient('github-light', Brightness.light), isNull);
       expect(buzzTopSectionGradient('nord', Brightness.dark), isNull);
     });
@@ -174,7 +174,7 @@ void main() {
       expect(decoration.color, isNull);
     });
 
-    testWidgets('non-Buzz themes keep the frosted surface fill', (
+    testWidgets('non-HireShelby themes keep the frosted surface fill', (
       tester,
     ) async {
       await tester.pumpWidget(harness(AppTheme.light()));
@@ -186,7 +186,7 @@ void main() {
   });
 
   group('isBuzzTheme', () {
-    test('matches only the Buzz pair', () {
+    test('matches only the HireShelby pair', () {
       expect(isBuzzTheme(buzzThemeName), isTrue);
       expect(isBuzzTheme(buzzDarkThemeName), isTrue);
       expect(isBuzzTheme('github-light'), isFalse);

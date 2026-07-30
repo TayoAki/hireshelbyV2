@@ -578,7 +578,7 @@ fn name_edit_changes_hash_when_display_name_is_absent() {
 
 #[test]
 fn display_name_edit_does_not_change_hash_under_an_explicit_title_override() {
-    // User env is written AFTER the Buzz-set title (last-wins), so an explicit
+    // User env is written AFTER the HireShelby-set title (last-wins), so an explicit
     // BUZZ_ACP_SESSION_TITLE is what the child actually runs with. Renaming the
     // record changes nothing about the spawned process, so badging it would be
     // a false restart prompt. The override itself still reaches the hash

@@ -1,6 +1,6 @@
 use super::*;
 
-/// Binary name fragments for all known agent/harness processes that Buzz
+/// Binary name fragments for all known agent/harness processes that HireShelby
 /// may spawn. Used by `process_belongs_to_us()` and the orphan sweep to
 /// identify processes we should clean up. Both hyphenated and underscored
 /// variants are listed because macOS `proc_name()` and Linux `/proc/comm`
@@ -125,7 +125,7 @@ pub(crate) fn process_belongs_to_us(_pid: u32) -> bool {
 
 /// The value stamped into the `BUZZ_MANAGED_AGENT` env var of every agent we
 /// spawn, identifying *which* desktop instance owns it. We use the app's bundle
-/// identifier (`xyz.block.buzz.app` for release, `xyz.block.buzz.app.dev`
+/// identifier (`com.hireshelby.app` for release, `com.hireshelby.app.dev`
 /// for `just dev`) because it is stable across restarts — a relaunched dev
 /// instance still recognizes its own previously-spawned agents as reclaimable,
 /// while never matching another instance's (e.g. a dev build never reaps a DMG
@@ -145,7 +145,7 @@ pub(super) fn buzz_marker_entry(instance_id: &str) -> Vec<u8> {
 /// Check if a running process is one of *our* managed agents: it must carry
 /// `BUZZ_MANAGED_AGENT=<instance_id>` in its environment, where `instance_id`
 /// is this desktop instance's id. A process stamped with a *different* instance
-/// id belongs to another live Buzz app and must never be reaped here.
+/// id belongs to another live HireShelby app and must never be reaped here.
 #[cfg(target_os = "macos")]
 pub(crate) fn process_has_buzz_marker(pid: u32, instance_id: &str) -> bool {
     let marker = buzz_marker_entry(instance_id);
@@ -414,7 +414,7 @@ pub(crate) fn valid_agent_runtime_receipt_with(
         && receipt.desktop_instance_id == instance_id
         && is_running(receipt.pid)
         // Receipts are written by THIS instance at spawn time, so they are
-        // Buzz-owned by construction. Marker-only ownership: custom-harness
+        // HireShelby-owned by construction. Marker-only ownership: custom-harness
         // binaries (not in KNOWN_AGENT_BINARIES) must not be rejected by a
         // name gate — see the sweep ownership rule in runtime/orphan_sweep.rs.
         && has_marker(receipt.pid, &receipt.desktop_instance_id)

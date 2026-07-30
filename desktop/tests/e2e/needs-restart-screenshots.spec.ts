@@ -141,7 +141,7 @@ test.describe("needs-restart screenshots", () => {
 
     // Auto-restart defaults ON — verify the enabled copy.
     await expect(
-      banner.getByText("Buzz can restart it automatically"),
+      banner.getByText("HireShelby can restart it automatically"),
     ).toBeVisible();
 
     await waitForAnimations(page);

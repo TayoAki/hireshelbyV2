@@ -1,6 +1,6 @@
 -------------------------- MODULE MultiTenantRelay --------------------------
 (***************************************************************************)
-(* Formal model of Buzz's proposed multi-tenant relay/database isolation.    *)
+(* Formal model of HireShelby's proposed multi-tenant relay/database isolation.    *)
 (*                                                                         *)
 (* This is the TLA+ half of the multi-tenant relay proof.  It models N       *)
 (* stateless relay workers over one shared Postgres database containing a    *)
@@ -29,7 +29,7 @@
 (*     emits no tenant observation; tenant reads see only own projection      *)
 (*     rows (or a subset/none during rebuild).                               *)
 (*                                                                         *)
-(* Source grounding from today's Buzz:                                      *)
+(* Source grounding from today's HireShelby:                                      *)
 (*   - migrations/0001_initial_schema.sql: events, channels,                *)
 (*     channel_members, event_mentions, thread_metadata, reactions,          *)
 (*     workflows, api_tokens, relay_members.                                *)

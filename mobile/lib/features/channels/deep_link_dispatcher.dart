@@ -9,7 +9,7 @@ import 'channel.dart';
 import 'channel_detail_page.dart';
 import 'channels_provider.dart';
 
-/// Routes pending `buzz://message` deep links into the channel view.
+/// Routes pending `hireshelby://message` deep links into the channel view.
 ///
 /// Wraps the authenticated home subtree. Whenever a parsed link is parked in
 /// [pendingDeepLinkProvider] and the channel list is available, this pushes

@@ -395,14 +395,14 @@ void main() {
       testWidgets('renders markdown link', (tester) async {
         await tester.pumpWidget(
           _testable(
-            const MessageContent(content: 'Check [Buzz](https://example.com)'),
+            const MessageContent(content: 'Check [HireShelby](https://example.com)'),
           ),
         );
 
         final allText = _allRichText(tester);
-        expect(allText, contains('Buzz'));
+        expect(allText, contains('HireShelby'));
         // Should not show raw markdown syntax.
-        expect(allText, isNot(contains('[Buzz]')));
+        expect(allText, isNot(contains('[HireShelby]')));
         expect(allText, isNot(contains('(https://example.com)')));
       });
 

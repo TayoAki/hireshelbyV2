@@ -2,7 +2,7 @@ import { useAgentManagement } from "@/features/agents/useAgentManagement";
 import { AgentDialog } from "./AgentDialog";
 import { SecretRevealDialog } from "./SecretRevealDialog";
 
-/** Global review surfaces opened by owned agents through the Buzz harness. */
+/** Global review surfaces opened by owned agents through the HireShelby harness. */
 export function AgentManagementDialogs() {
   const management = useAgentManagement();
 

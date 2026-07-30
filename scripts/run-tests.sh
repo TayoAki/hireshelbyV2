@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# run-tests.sh — Run Buzz test suite
+# run-tests.sh — Run HireShelby test suite
 # =============================================================================
 # Usage:
 #   ./scripts/run-tests.sh              # run all tests (default)

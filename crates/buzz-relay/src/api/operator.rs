@@ -140,7 +140,7 @@ async fn check_operator_replay(
 /// `RELAY_OPERATOR_PUBKEYS`, body:
 ///
 /// ```json
-/// { "host": "acme.communities.buzz.xyz", "initial_owner_pubkey": "<hex>" }
+/// { "host": "acme.communities.hireshelby.com", "initial_owner_pubkey": "<hex>" }
 /// ```
 ///
 /// The request is authenticated against `RELAY_OPERATOR_API_ORIGIN` and does

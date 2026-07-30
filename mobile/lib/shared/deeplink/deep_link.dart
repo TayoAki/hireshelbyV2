@@ -1,7 +1,7 @@
-/// Parsing for `buzz://` deep links.
+/// Parsing for `hireshelby://` deep links.
 ///
 /// Mirrors the desktop handler in `desktop/src-tauri/src/deep_link.rs`:
-/// `buzz://message?channel=<uuid>&id=<hex>[&thread=<hex>]` references a
+/// `hireshelby://message?channel=<uuid>&id=<hex>[&thread=<hex>]` references a
 /// message (optionally inside a thread) in a channel. Required params that
 /// are missing or empty make the link invalid — the caller never sees a
 /// half-formed target.
@@ -17,7 +17,7 @@ sealed class BuzzDeepLink {
 /// A parsed relay invite link.
 ///
 /// Canonical share links are `https://<relay>/invite/<code>`. The custom
-/// `buzz://join?relay=<ws(s)://relay>&code=<code>` form is only an installed-app
+/// `hireshelby://join?relay=<ws(s)://relay>&code=<code>` form is only an installed-app
 /// handoff from the web landing page.
 class InviteDeepLink extends BuzzDeepLink {
   /// Relay URL normalized to the websocket scheme used by the app.
@@ -50,7 +50,7 @@ class InviteDeepLink extends BuzzDeepLink {
       'InviteDeepLink(relay: $relayUrl, code: $code, policyReceipt: $policyReceipt)';
 }
 
-/// A parsed `buzz://message` deep link.
+/// A parsed `hireshelby://message` deep link.
 class MessageDeepLink extends BuzzDeepLink {
   /// Channel UUID from the `channel` query param.
   final String channelId;
@@ -83,11 +83,11 @@ class MessageDeepLink extends BuzzDeepLink {
       'thread: $threadRootId)';
 }
 
-/// Build a canonical `buzz://message` link for a channel message.
+/// Build a canonical `hireshelby://message` link for a channel message.
 ///
 /// Mirrors `desktop/src/features/messages/lib/messageLink.ts` so links copied
 /// or shared from mobile round-trip through every client's parser:
-/// `buzz://message?channel=<uuid>&id=<eventId>[&thread=<rootId>]`.
+/// `hireshelby://message?channel=<uuid>&id=<eventId>[&thread=<rootId>]`.
 ///
 /// An empty [threadRootId] is treated as "no thread" so callers can pass
 /// through a nullable thread reference without extra checks.
@@ -109,19 +109,19 @@ String buildMessageLink({
     if (threadRootId != null && threadRootId.isNotEmpty) 'thread': threadRootId,
   };
   return Uri(
-    scheme: 'buzz',
+    scheme: 'hireshelby',
     host: 'message',
     queryParameters: params,
   ).toString();
 }
 
-/// Parse a `buzz://message?…` URI into a [MessageDeepLink].
+/// Parse a `hireshelby://message?…` URI into a [MessageDeepLink].
 ///
-/// Returns `null` for non-`buzz` schemes, non-`message` hosts (e.g.
-/// `buzz://connect` which is desktop-only), or links missing a non-empty
+/// Returns `null` for non-`hireshelby` schemes, non-`message` hosts (e.g.
+/// `hireshelby://connect` which is desktop-only), or links missing a non-empty
 /// `channel` or `id` param.
 MessageDeepLink? parseMessageDeepLink(Uri uri) {
-  if (uri.scheme != 'buzz' || uri.host != 'message') return null;
+  if (uri.scheme != 'hireshelby' || uri.host != 'message') return null;
 
   final channel = uri.queryParameters['channel'];
   final id = uri.queryParameters['id'];
@@ -137,13 +137,13 @@ MessageDeepLink? parseMessageDeepLink(Uri uri) {
   );
 }
 
-/// Parse canonical HTTPS invite links and `buzz://join` app handoffs.
+/// Parse canonical HTTPS invite links and `hireshelby://join` app handoffs.
 ///
 /// Accepted forms:
 /// - `https://<relay>/invite/<code>` -> `wss://<relay>` + code
 /// - `http://localhost/invite/<code>` -> `ws://localhost` + code in debug builds
-/// - `buzz://join?relay=<wss://relay>&code=<code>` -> relay + code
-/// - `buzz://join?relay=<ws://localhost>&code=<code>` -> local relay in debug
+/// - `hireshelby://join?relay=<wss://relay>&code=<code>` -> relay + code
+/// - `hireshelby://join?relay=<ws://localhost>&code=<code>` -> local relay in debug
 ///
 /// Rejects credentials, fragments, missing params, nested relay credentials, and
 /// non-invite paths so scanners do not accidentally treat arbitrary URLs as
@@ -151,7 +151,7 @@ MessageDeepLink? parseMessageDeepLink(Uri uri) {
 InviteDeepLink? parseInviteDeepLink(Uri uri) {
   if (uri.hasFragment || uri.userInfo.isNotEmpty) return null;
 
-  if (uri.scheme == 'buzz') {
+  if (uri.scheme == 'hireshelby') {
     if (uri.host != 'join') return null;
     final relay = uri.queryParameters['relay'];
     final code = uri.queryParameters['code'];
@@ -216,6 +216,6 @@ InviteDeepLink? parseInviteDeepLink(Uri uri) {
   return null;
 }
 
-/// Parse any supported Buzz deep link.
+/// Parse any supported HireShelby deep link.
 BuzzDeepLink? parseBuzzDeepLink(Uri uri) =>
     parseInviteDeepLink(uri) ?? parseMessageDeepLink(uri);

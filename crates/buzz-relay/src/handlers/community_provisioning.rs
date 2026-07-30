@@ -18,7 +18,7 @@
 //! ## Request shape
 //!
 //! ```json
-//! { "host": "acme.communities.buzz.xyz", "initial_owner_pubkey": "<hex>" }
+//! { "host": "acme.communities.hireshelby.com", "initial_owner_pubkey": "<hex>" }
 //! ```
 //!
 //! `initial_owner_pubkey` is optional. When present for an existing community,
@@ -356,7 +356,7 @@ mod tests {
 
     #[test]
     fn host_valid_bare_domain() {
-        assert!(validate_host("acme.communities.buzz.xyz").is_ok());
+        assert!(validate_host("acme.communities.hireshelby.com").is_ok());
     }
 
     #[test]

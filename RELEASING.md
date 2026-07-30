@@ -1,6 +1,6 @@
-# Releasing Buzz
+# Releasing HireShelby
 
-Buzz has three independent release lanes. Desktop and relay use release PRs.
+HireShelby has three independent release lanes. Desktop and relay use release PRs.
 Mobile uses immutable release-candidate tags cut directly from remote `main`:
 
 | Lane | Entry point | Artifact |
@@ -75,7 +75,7 @@ Every push to `main` continues to publish the rolling relay `:main` and
    GitHub App. It never uses the operator's checked-out commit and never moves
    an existing candidate.
 2. **Build the exact tag.** Enter the candidate tag as `mobile_ref` in the
-   private Buzz mobile Buildkite pipeline. OSS CI deliberately cannot trigger
+   private HireShelby mobile Buildkite pipeline. OSS CI deliberately cannot trigger
    that private pipeline. The tag supplies both source commit and release
    version. Flutter receives clean marketing version `X.Y.Z`; Buildkite's
    monotonically increasing build number supplies the platform build number.
@@ -205,7 +205,7 @@ host's Wayland/GStreamer/graphics stack and requires GLib >= 2.72
   repository
 - `gh` CLI version 2.87.0 or newer, authenticated with permission to dispatch
   the candidate workflow
-- Release tag ruleset [`14378754`](https://github.com/block/buzz/rules/14378754)
+- Release tag ruleset [`14378754`](https://github.com/hireshelby/hireshelby/rules/14378754)
   active for `mobile-v*`, with creation, update, deletion, and non-fast-forward
   protections and `buzz-release-bot` as its sole always-bypass actor
 - The `buzz-release-bot` App credentials configured for GitHub Actions

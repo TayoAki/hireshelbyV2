@@ -34,7 +34,7 @@ function resetDevWebviewStateFromUrl() {
     return;
   }
 
-  // WebKit groups every Buzz binary under one disk directory, but storage is
+  // WebKit groups every HireShelby binary under one disk directory, but storage is
   // isolated by origin. Clearing here resets only this dev server's origin;
   // deleting the shared WebKit directory would also destroy installed-app state.
   window.localStorage.clear();

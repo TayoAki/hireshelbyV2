@@ -1,7 +1,7 @@
 use crate::managed_agents::{AcpAvailabilityStatus, InstallStepResult};
 
 pub(super) fn run(runtime_id: &str, steps: &mut Vec<InstallStepResult>) {
-    // Observe PATH changes and binaries added after Buzz launched.
+    // Observe PATH changes and binaries added after HireShelby launched.
     crate::managed_agents::refresh_login_shell_path();
     crate::managed_agents::clear_resolve_cache();
 
@@ -28,11 +28,11 @@ fn failure(
         success: false,
         stdout: String::new(),
         stderr: format!(
-            "The installer finished, but Buzz still could not use {runtime_id} (observed: {observed})."
+            "The installer finished, but HireShelby still could not use {runtime_id} (observed: {observed})."
         ),
         exit_code: None,
         hint: Some(
-            "Buzz requires the vendor CLI executable, not only its desktop app. If the CLI was installed while Buzz was open, restart Buzz and check again."
+            "HireShelby requires the vendor CLI executable, not only its desktop app. If the CLI was installed while HireShelby was open, restart HireShelby and check again."
                 .to_string(),
         ),
     })

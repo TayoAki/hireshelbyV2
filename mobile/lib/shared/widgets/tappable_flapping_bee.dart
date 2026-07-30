@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// The Buzz mark with wings that flutter twice when the user taps it.
+/// The HireShelby mark with wings that flutter twice when the user taps it.
 ///
 /// The geometry and wing tuck match the desktop loading bee. When reduced
 /// motion is enabled, the mark stays static.
@@ -35,7 +35,7 @@ class TappableFlappingBee extends HookConsumerWidget {
 
     return Semantics(
       button: true,
-      label: 'Buzz bee',
+      label: 'HireShelby bee',
       hint: 'Tap to make its wings flutter',
       onTap: flutterWings,
       child: GestureDetector(

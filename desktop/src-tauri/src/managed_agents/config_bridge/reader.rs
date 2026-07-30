@@ -27,7 +27,7 @@ pub(crate) fn read_config_surface(
         })
         .unwrap_or_else(|| (RuntimeFileConfig::default(), false));
 
-    // Tier 2a: record-level values (Buzz-explicit).
+    // Tier 2a: record-level values (HireShelby-explicit).
     let record_model = record.model.clone();
     let record_provider = record
         .env_vars
@@ -237,7 +237,7 @@ fn build_model_field(
     session_cache: Option<&SessionConfigCache>,
     is_required: bool,
 ) -> NormalizedField {
-    // Precedence: Buzz-explicit > ACP current > config file
+    // Precedence: HireShelby-explicit > ACP current > config file
     let (value, origin) = if let Some(ref m) = record_model {
         (Some(m.clone()), ConfigOrigin::BuzzExplicit)
     } else if let Some(ref m) = acp_model {
@@ -252,7 +252,7 @@ fn build_model_field(
     };
 
     // The secondary expresses ONLY the static record-vs-file precedence: a
-    // Buzz-explicit model shadowing a config-file model. The live-session
+    // HireShelby-explicit model shadowing a config-file model. The live-session
     // override (acp vs record/persona) is exclusively `apply_runtime_override`'s
     // job, gated on `model_overridden`. Surfacing `acp_model` here would leak an
     // override row even when no live switch has been applied.

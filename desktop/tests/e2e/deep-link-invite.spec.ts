@@ -29,7 +29,7 @@ const PENDING_CONNECT_LINK = {
 const PENDING_ADD_COMMUNITY_LINK = {
   id: "dl-add-community-1",
   kind: "add-community" as const,
-  relayUrl: "wss://acme.communities.buzz.xyz",
+  relayUrl: "wss://acme.communities.hireshelby.com",
   code: null,
   name: "Acme Team",
 };
@@ -37,7 +37,7 @@ const PENDING_ADD_COMMUNITY_LINK = {
 const SECOND_PENDING_ADD_COMMUNITY_LINK = {
   id: "dl-add-community-2",
   kind: "add-community" as const,
-  relayUrl: "wss://beta.communities.buzz.xyz",
+  relayUrl: "wss://beta.communities.hireshelby.com",
   code: null,
   name: "Beta Team",
 };
@@ -310,7 +310,9 @@ test("Welcome failure retries once before allowing starter channel setup to be s
     );
   }
 
-  const enterButton = page.getByRole("button", { name: "Take me to Buzz" });
+  const enterButton = page.getByRole("button", {
+    name: "Take me to HireShelby",
+  });
   await enterButton.click();
 
   await expect(page.getByText(`${welcomeError} Try again.`)).toBeVisible();

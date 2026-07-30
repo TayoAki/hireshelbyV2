@@ -10,7 +10,7 @@ use error::CliError;
 use nostr::Keys;
 use uuid::Uuid;
 
-/// Run the Buzz CLI from raw arguments (including `argv[0]`).
+/// Run the HireShelby CLI from raw arguments (including `argv[0]`).
 ///
 /// Returns a process exit code (0 = success).
 ///
@@ -62,9 +62,9 @@ where
 #[derive(Parser)]
 #[command(
     name = "buzz",
-    about = "Buzz CLI — interact with a Buzz relay",
+    about = "HireShelby CLI — interact with a HireShelby relay",
     long_about = "\
-Buzz CLI — interact with a Buzz relay
+HireShelby CLI — interact with a HireShelby relay
 
 Configuration (flags override env vars):
   BUZZ_RELAY_URL     Relay base URL        [default: http://localhost:3000]
@@ -258,7 +258,7 @@ impl RespondToArg {
 
 #[derive(Subcommand)]
 pub enum AgentsCmd {
-    /// Open a prefilled create-agent form in the owner's Buzz Desktop
+    /// Open a prefilled create-agent form in the owner's HireShelby Desktop
     DraftCreate {
         /// Current channel UUID; the new agent is added here after save
         #[arg(long)]
@@ -270,7 +270,7 @@ pub enum AgentsCmd {
         #[arg(long)]
         system_prompt: String,
     },
-    /// Open a prefilled edit-agent form in the owner's Buzz Desktop
+    /// Open a prefilled edit-agent form in the owner's HireShelby Desktop
     DraftUpdate {
         /// Current channel UUID
         #[arg(long)]
@@ -544,7 +544,7 @@ pub enum ChannelsCmd {
     },
     /// Create a new channel
     #[command(
-        after_help = "Examples:\n  buzz channels create --name general --type stream --visibility open\n  buzz channels create --name design --type forum --visibility open --description \"Design discussions\"\n  buzz channels create --name standup --type stream --visibility open --ttl 3600  # ephemeral, archived after 1h idle\n  buzz channels create --name project-x --template \"Buzz Team\"  # type/visibility/canvas/roster from the template; explicit flags override"
+        after_help = "Examples:\n  buzz channels create --name general --type stream --visibility open\n  buzz channels create --name design --type forum --visibility open --description \"Design discussions\"\n  buzz channels create --name standup --type stream --visibility open --ttl 3600  # ephemeral, archived after 1h idle\n  buzz channels create --name project-x --template \"HireShelby Team\"  # type/visibility/canvas/roster from the template; explicit flags override"
     )]
     Create {
         /// Channel name

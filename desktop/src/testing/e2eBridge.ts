@@ -373,7 +373,7 @@ type E2eConfig = {
     // Event IDs that `get_event` should report as definitively not found.
     // Causes `useDraftRootStatus` to classify as `deleted`.
     deletedEventIds?: string[];
-    // Pending community deep links (buzz://join / buzz://connect / buzz://add-community) seeded into
+    // Pending community deep links (hireshelby://join / hireshelby://connect / hireshelby://add-community) seeded into
     // the mocked Rust-side queue. Mirrors the real queue's semantics:
     // `take_pending_community_deep_link` peeks the head and
     // `acknowledge_pending_community_deep_link` removes by id. Drives the
@@ -1936,7 +1936,7 @@ function buildMockConfigSurface(pubkey: string): {
   };
 
   // Mixed-provenance showcase — top-level rows carry different origins so the
-  // panel witnesses distinct provenance labels in one frame: "Set in Buzz",
+  // panel witnesses distinct provenance labels in one frame: "Set in HireShelby",
   // "Inherited from template", "From config file (...)" and
   // "From environment variable (...)".
   const multiOriginSurface = {
@@ -1998,7 +1998,7 @@ function buildMockConfigSurface(pubkey: string): {
   const buzzAgentSurface = {
     ...gooseSurface,
     runtimeId: "buzz-agent",
-    runtimeLabel: "Buzz Agent",
+    runtimeLabel: "HireShelby Agent",
     advanced: [],
     extensions: [],
     sources: {
@@ -4916,7 +4916,7 @@ const MOCK_PROJECT_SEEDS = [
     dtag: "buzz",
     name: "buzz",
     description:
-      "Relay, desktop, and mobile clients for the Buzz community platform.",
+      "Relay, desktop, and mobile clients for the HireShelby community platform.",
     owner: MOCK_IDENTITY_PUBKEY,
     contributors: [ALICE_PUBKEY, BOB_PUBKEY, CHARLIE_PUBKEY],
     activityLevel: 4,
@@ -7145,15 +7145,15 @@ async function handleDiscoverAcpRuntimes(
     },
     {
       id: "buzz-agent",
-      label: "Buzz Agent",
+      label: "HireShelby Agent",
       avatar_url: "",
       availability: "available",
       command: "buzz-agent",
       binary_path: "/usr/local/bin/buzz-agent",
       default_args: [],
       mcp_command: "buzz-dev-mcp",
-      install_hint: "Ships with the Buzz desktop app.",
-      install_instructions_url: "https://github.com/block/buzz",
+      install_hint: "Ships with the HireShelby desktop app.",
+      install_instructions_url: "https://github.com/hireshelby/hireshelby",
       can_auto_install: false,
       requires_external_cli: false,
       underlying_cli_path: null,
@@ -8063,7 +8063,7 @@ async function handleStartManagedAgent(
         mockMeshState.models.some((model) => model.id === modelId));
     if (!hasLiveTarget) {
       throw new Error(
-        "Buzz shared compute cannot start because no live member is serving this model.",
+        "HireShelby shared compute cannot start because no live member is serving this model.",
       );
     }
   }
@@ -9769,7 +9769,7 @@ export function maybeInstallE2eTauriMocks() {
       case "check_builderlab_community_name":
         return {
           available: true,
-          normalized_host: `${(payload as { name?: string })?.name ?? "community"}.communities.buzz.xyz`,
+          normalized_host: `${(payload as { name?: string })?.name ?? "community"}.communities.hireshelby.com`,
         };
       case "create_builderlab_community": {
         const name = (payload as { name?: string })?.name ?? "community";
@@ -9777,7 +9777,7 @@ export function maybeInstallE2eTauriMocks() {
           community: activeConfig?.mock?.builderlabCreatedCommunity ?? {
             id: `hosted-${name}`,
             name,
-            normalized_host: `${name}.communities.buzz.xyz`,
+            normalized_host: `${name}.communities.hireshelby.com`,
           },
         };
       }
@@ -9794,7 +9794,7 @@ export function maybeInstallE2eTauriMocks() {
               name: "Gemma-4-E4B-it-Q4_K_M",
               size: "3.5GB",
               sizeGb: 3.5,
-              description: "Buzz-curated local agent model",
+              description: "HireShelby-curated local agent model",
               fit: "comfortable",
               installed: true,
               recommended: true,
@@ -10129,7 +10129,7 @@ export function maybeInstallE2eTauriMocks() {
               kind: "blob",
               size: 33120,
               preview_content:
-                "// Smart HTTP git transport\n// Handles upload-pack and receive-pack for Buzz git repos.\n",
+                "// Smart HTTP git transport\n// Handles upload-pack and receive-pack for HireShelby git repos.\n",
             },
           ],
         };
@@ -11016,7 +11016,7 @@ export function maybeInstallE2eTauriMocks() {
           }
           if (mockMeshState.models.length === 0) {
             throw new Error(
-              "no Buzz shared compute serving members are available",
+              "no HireShelby shared compute serving members are available",
             );
           }
         }

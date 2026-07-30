@@ -234,7 +234,7 @@ pub struct AuthenticateArgs {
 #[derive(Debug, Parser)]
 #[command(
     name = "buzz-acp",
-    about = "ACP harness that bridges Buzz events to AI agents"
+    about = "ACP harness that bridges HireShelby events to AI agents"
 )]
 pub struct CliArgs {
     #[arg(long, env = "BUZZ_RELAY_URL", default_value = "ws://localhost:3000")]
@@ -405,7 +405,7 @@ pub struct CliArgs {
     pub no_memory: bool,
 
     /// Disable the [Base] platform-context section prepended to every prompt.
-    /// When set, agents receive only the persona [System] prompt with no Buzz orientation.
+    /// When set, agents receive only the persona [System] prompt with no HireShelby orientation.
     #[arg(long, env = "BUZZ_ACP_NO_BASE_PROMPT")]
     pub no_base_prompt: bool,
 
@@ -572,7 +572,7 @@ const SESSION_TITLE_MAX_CHARS: usize = 80;
 /// space, and the result is trimmed and capped at
 /// [`SESSION_TITLE_MAX_CHARS`]. Returns `None` when nothing printable is left.
 ///
-/// Buzz is the only guard here: Codex's own `normalize_thread_name` merely
+/// HireShelby is the only guard here: Codex's own `normalize_thread_name` merely
 /// trims, so an unbounded display name would be persisted verbatim into its
 /// thread store.
 fn sanitize_session_title(raw: &str) -> Option<String> {
@@ -699,7 +699,7 @@ fn default_agent_args(command: &str) -> Option<Vec<String>> {
     }
 }
 
-/// Per-runtime environment defaults applied when Buzz owns the agent process.
+/// Per-runtime environment defaults applied when HireShelby owns the agent process.
 ///
 /// Mirrors [`default_agent_args`]: keyed on the normalized command identity,
 /// with the merge (in `AcpClient::spawn`) giving explicit persona env and

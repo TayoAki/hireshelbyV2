@@ -3,11 +3,6 @@ use std::path::{Path, PathBuf};
 use rusqlite::{Connection, OpenFlags};
 use serde::Serialize;
 
-const BUZZ_RELEASE_IDENTIFIER_PREFIX: &str = "xyz.block.buzz.app";
-const SPROUT_RELEASE_IDENTIFIER: &str = "xyz.block.sprout.app";
-const BUZZ_DEV_IDENTIFIER_PREFIX: &str = "xyz.block.buzz.app.dev";
-const SPROUT_DEV_IDENTIFIER_PREFIX: &str = "xyz.block.sprout.app.dev";
-
 const SPROUT_WORKSPACES_KEY: &str = "sprout-workspaces";
 const SPROUT_ACTIVE_WORKSPACE_KEY: &str = "sprout-active-workspace-id";
 const SPROUT_ONBOARDING_COMPLETE_PREFIX: &str = "sprout-onboarding-complete.v1:";
@@ -27,22 +22,17 @@ pub struct LegacyOnboardingCompletion {
     value: String,
 }
 
-fn legacy_identifier(current_identifier: &str) -> Option<String> {
-    if current_identifier.starts_with(BUZZ_DEV_IDENTIFIER_PREFIX) {
-        Some(current_identifier.replacen(
-            BUZZ_DEV_IDENTIFIER_PREFIX,
-            SPROUT_DEV_IDENTIFIER_PREFIX,
-            1,
-        ))
-    } else if current_identifier.starts_with(BUZZ_RELEASE_IDENTIFIER_PREFIX) {
-        Some(current_identifier.replacen(
-            BUZZ_RELEASE_IDENTIFIER_PREFIX,
-            SPROUT_RELEASE_IDENTIFIER,
-            1,
-        ))
-    } else {
-        None
-    }
+/// Maps the current bundle identifier to a predecessor application's identifier,
+/// so WebKit localStorage written by that predecessor can be imported on first
+/// run.
+///
+/// HireShelby has no predecessor application, so this always returns `None` and
+/// the import below is inert. It deliberately does not map to the upstream
+/// `xyz.block.sprout.app` / `xyz.block.buzz.app` identifiers: those belong to a
+/// different vendor's applications, and reading their user data would be wrong.
+/// Restore a mapping here only if a genuine HireShelby predecessor ships.
+fn legacy_identifier(_current_identifier: &str) -> Option<String> {
+    None
 }
 
 #[cfg(target_os = "macos")]
@@ -165,7 +155,7 @@ fn merge_legacy_workspace_storage(
 }
 
 /// Return workspace-scoped localStorage values from the legacy Sprout WebKit
-/// data directory so the frontend can seed Buzz localStorage before first
+/// data directory so the frontend can seed HireShelby localStorage before first
 /// render. This is separate from `migrate_legacy_app_data_dir`: Tauri app data
 /// migration copies files such as `identity.key`, but WebKit localStorage lives
 /// under `~/Library/WebKit/<identifier>/...` on macOS and is not included in the
@@ -211,19 +201,29 @@ mod tests {
     use super::*;
 
     #[test]
-    fn legacy_identifier_maps_release_identifier() {
-        assert_eq!(
-            legacy_identifier("xyz.block.buzz.app"),
-            Some("xyz.block.sprout.app".to_string())
-        );
+    fn legacy_identifier_has_no_predecessor_for_release_identifier() {
+        assert_eq!(legacy_identifier("com.hireshelby.app"), None);
     }
 
     #[test]
-    fn legacy_identifier_maps_dev_worktree_identifier() {
-        assert_eq!(
-            legacy_identifier("xyz.block.buzz.app.dev.my-branch"),
-            Some("xyz.block.sprout.app.dev.my-branch".to_string())
-        );
+    fn legacy_identifier_has_no_predecessor_for_dev_worktree_identifier() {
+        assert_eq!(legacy_identifier("com.hireshelby.app.dev.my-branch"), None);
+    }
+
+    #[test]
+    fn legacy_identifier_never_maps_to_upstream_vendor_identifiers() {
+        for id in [
+            "com.hireshelby.app",
+            "com.hireshelby.app.dev",
+            "xyz.block.buzz.app",
+            "xyz.block.sprout.app",
+        ] {
+            assert_eq!(
+                legacy_identifier(id),
+                None,
+                "must not resolve another vendor's app data for {id}"
+            );
+        }
     }
 
     #[test]

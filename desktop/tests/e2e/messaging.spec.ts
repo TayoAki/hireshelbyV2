@@ -261,7 +261,7 @@ test("markdown tables overflow wide content and fill the message when narrow", a
 test("supported link previews keep the message link visible", async ({
   page,
 }) => {
-  const previewUrl = "https://github.com/block/sprout/pull/1334";
+  const previewUrl = "https://github.com/hireshelby/hireshelby/pull/1334";
 
   await page.goto("/");
   await page.getByTestId("channel-general").click();

@@ -772,8 +772,8 @@ function MessageComposerImpl({
             return true;
           }
 
-          // --- Buzz code-block paste ---
-          // The code block copy button writes a small Buzz marker alongside
+          // --- HireShelby code-block paste ---
+          // The code block copy button writes a small HireShelby marker alongside
           // plain text. Use it to paste back as a literal code block so Markdown
           // parsing cannot reshape indentation, fence markers, or headings.
           const codeBlockText = getBuzzCodeBlockClipboardText(
@@ -799,7 +799,7 @@ function MessageComposerImpl({
             return true;
           }
 
-          // Restore Buzz snapshots before normal styled-HTML normalization.
+          // Restore HireShelby snapshots before normal styled-HTML normalization.
           if (handleAgentSnapshotPaste(event, media.setPendingImeta))
             return true;
           // Strip mention/channel wrappers that Tiptap would misread as bold.

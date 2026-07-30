@@ -8,12 +8,12 @@ on:
         required: true
 
 env:
-  RELEASE_AUTOMATION_NAME: Carl
-  RELEASE_AUTOMATION_EMAIL: c7ebe626f000404285d3686e1dc74cc07cc60a9754a150041ba132e14bd3e2ec@buzz.block.builderlab.xyz
+  RELEASE_AUTOMATION_NAME: HireShelby Release Bot
+  RELEASE_AUTOMATION_EMAIL: release-bot@hireshelby.com
 
 jobs:
   prepare:
-    if: github.repository == 'block/buzz'
+    if: github.repository == 'hireshelby/hireshelby'
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -1275,7 +1275,7 @@ function ImageMosaic({ children }: { children: React.ReactNode[] }) {
 /**
  * An external `[text](href)` link with a custom right-click menu.
  *
- * Buzz renders inside a native webview whose default context menu has no
+ * HireShelby renders inside a native webview whose default context menu has no
  * useful link actions, so a plain right-click on a link is a no-op. This adds
  * an in-app menu with "Open link" (via the OS opener, matching the anchor's
  * left-click `target="_blank"` behavior) and "Copy link" (the real href, not
@@ -1426,7 +1426,7 @@ function createMarkdownComponents(
       );
     }
 
-    // Intercept `buzz://message?channel=…&id=…` links so a click navigates
+    // Intercept `hireshelby://message?channel=…&id=…` links so a click navigates
     // in-app instead of opening the URL in the OS browser. http(s) links
     // continue to use the existing target="_blank" behavior.
     if (href) {
@@ -1776,7 +1776,7 @@ function createMarkdownComponents(
       const href = String(children ?? "");
       const parsed = parseMessageLink(href);
       if (!parsed.ok) {
-        // Malformed `buzz://message?…` — render the raw URL as plain text
+        // Malformed `hireshelby://message?…` — render the raw URL as plain text
         // rather than a misleading clickable pill.
         return <span data-message-link="">{href}</span>;
       }

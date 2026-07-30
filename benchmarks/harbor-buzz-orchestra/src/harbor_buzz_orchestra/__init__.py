@@ -1,4 +1,4 @@
-"""Buzz orchestra custom agent for Harbor."""
+"""HireShelby orchestra custom agent for Harbor."""
 
 from .agent import BuzzOrchestraAgent
 from .container_runtime import (

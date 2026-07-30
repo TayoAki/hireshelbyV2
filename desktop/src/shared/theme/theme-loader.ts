@@ -8,7 +8,7 @@
 import type { ThemeRegistrationRaw } from "shiki";
 
 /**
- * Buzz theme name. Buzz is a first-party light theme that reuses GitHub
+ * HireShelby theme name. HireShelby is a first-party light theme that reuses GitHub
  * Light for every base color (backgrounds, text, borders, code) — the
  * message area and containers are indistinguishable from GitHub Light. Its
  * one distinguishing feature is a branded gradient painted across the
@@ -19,33 +19,33 @@ import type { ThemeRegistrationRaw } from "shiki";
 export const BUZZ_THEME_NAME = "buzz";
 
 /**
- * Buzz Dark theme name. The dark-mode counterpart to {@link BUZZ_THEME_NAME}:
+ * HireShelby Dark theme name. The dark-mode counterpart to {@link BUZZ_THEME_NAME}:
  * reuses the GitHub Dark palette for every base color, with the same branded
  * sidebar gradient (dark-tuned colors, see `shared/styles/globals/theme.css`).
  * {@link ThemeProvider} toggles the shared `data-buzz-sidebar` attribute for
  * this theme too; the `.dark` root class selects the dark gradient values.
  *
- * Buzz and Buzz Dark are paired in {@link THEME_PAIRS}, so the picker shows a
- * combined "Buzz" tile under System mode (follow-OS) plus a single "Buzz" tile
- * under Light and a "Buzz Dark" tile under Dark.
+ * HireShelby and HireShelby Dark are paired in {@link THEME_PAIRS}, so the picker shows a
+ * combined "HireShelby" tile under System mode (follow-OS) plus a single "HireShelby" tile
+ * under Light and a "HireShelby Dark" tile under Dark.
  */
 export const BUZZ_DARK_THEME_NAME = "buzz-dark";
 
-/** The Shiki bundle Buzz borrows its base palette from. */
+/** The Shiki bundle HireShelby borrows its base palette from. */
 export const BUZZ_BASE_THEME: SyntaxThemeName = "github-light";
 
-/** The Shiki bundle Buzz Dark borrows its base palette from. */
+/** The Shiki bundle HireShelby Dark borrows its base palette from. */
 export const BUZZ_DARK_BASE_THEME: SyntaxThemeName = "github-dark";
 
 /**
  * Resolve a theme name to the real Shiki bundled theme it maps to.
  *
- * Most themes map to themselves, but the Buzz aliases (`buzz` / `buzz-dark`)
+ * Most themes map to themselves, but the HireShelby aliases (`buzz` / `buzz-dark`)
  * are not bundled Shiki themes — they reuse the GitHub Light / GitHub Dark
  * palettes. The Shiki highlighter engine (used for fenced code blocks in
  * `CodeBlock.tsx`) only understands bundled names, so callers that hand a
  * theme name to `loadTheme` / `codeToTokens` must resolve it through here
- * first; passing a raw Buzz alias makes Shiki throw and code blocks fall
+ * first; passing a raw HireShelby alias makes Shiki throw and code blocks fall
  * back to unhighlighted plain text.
  */
 export function resolveShikiThemeName(name: string): SyntaxThemeName {
@@ -54,7 +54,7 @@ export function resolveShikiThemeName(name: string): SyntaxThemeName {
   return name as SyntaxThemeName;
 }
 
-// Available themes. "buzz" is a Buzz-branded theme that reuses the
+// Available themes. "buzz" is a HireShelby-branded theme that reuses the
 // github-light palette plus a sidebar gradient; the rest are the Shiki
 // bundled syntax themes, alphabetically sorted.
 export const SYNTAX_THEMES = [
@@ -153,9 +153,9 @@ const themeImports: Record<
   SyntaxThemeName,
   () => Promise<{ default: ThemeRegistrationRaw }>
 > = {
-  // Buzz reuses the github-light palette; its gradient is applied separately.
+  // HireShelby reuses the github-light palette; its gradient is applied separately.
   buzz: () => import("shiki/themes/github-light.mjs"),
-  // Buzz Dark reuses the github-dark palette; dark gradient applied separately.
+  // HireShelby Dark reuses the github-dark palette; dark gradient applied separately.
   "buzz-dark": () => import("shiki/themes/github-dark.mjs"),
   andromeeda: () => import("shiki/themes/andromeeda.mjs"),
   "aurora-x": () => import("shiki/themes/aurora-x.mjs"),
@@ -235,7 +235,7 @@ export function isLightTheme(name: string): boolean {
 export const THEME_PAIRS: ReadonlyMap<SyntaxThemeName, SyntaxThemeName> =
   new Map([
     // Light → Dark
-    // Buzz is the first-party pair; keep it first so it leads every category.
+    // HireShelby is the first-party pair; keep it first so it leads every category.
     ["buzz", "buzz-dark"],
     ["catppuccin-latte", "catppuccin-mocha"],
     ["everforest-light", "everforest-dark"],

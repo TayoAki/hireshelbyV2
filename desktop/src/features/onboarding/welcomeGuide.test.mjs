@@ -174,7 +174,7 @@ test("all Welcome starters use the onboarding runtime preference", async () => {
   const buzzAgent = {
     ...claude,
     id: "buzz-agent",
-    label: "Buzz Agent",
+    label: "HireShelby Agent",
     command: "buzz-agent",
   };
 

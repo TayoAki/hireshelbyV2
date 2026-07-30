@@ -153,7 +153,7 @@ export function MachineOnboardingFlow({
               transitionKey="machine-identity"
             >
               <img
-                alt="Buzz"
+                alt="HireShelby"
                 className="w-full max-w-[600px]"
                 src="/landing/buzz-wordmark.png"
               />
@@ -207,7 +207,7 @@ export function MachineOnboardingFlow({
                 <p className="mt-5 max-w-[440px] text-sm leading-6 text-foreground/80">
                   {identityLost
                     ? "Your identity is no longer in the system keyring. Re-import your nsec to restore it."
-                    : "If you already have a Buzz account, enter your private key below to get started."}
+                    : "If you already have a HireShelby account, enter your private key below to get started."}
                 </p>
               </div>
               <div className="buzz-onboarding-key-import-position w-full">

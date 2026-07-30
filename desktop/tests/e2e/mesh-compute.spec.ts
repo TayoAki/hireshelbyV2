@@ -33,7 +33,7 @@ test("Share compute selects the curated default and starts and stops sharing", a
   await expect(model).toHaveValue("Gemma-4-E4B-it-Q4_K_M");
   await expect(toggle).toBeEnabled();
   await expect(card).toContainText(
-    "Buzz downloads remote models when sharing starts",
+    "HireShelby downloads remote models when sharing starts",
   );
 
   await toggle.click();
@@ -102,7 +102,7 @@ test("a consuming client can switch to sharing its saved local model", async ({
   await expect(card).toContainText(
     "This machine is currently using another member's shared compute",
   );
-  await expect(card).toContainText("Buzz may briefly restart");
+  await expect(card).toContainText("HireShelby may briefly restart");
   await expect(toggle).not.toBeChecked();
   await expect(model).toBeEnabled();
   await expect(model).toHaveValue(localModel);

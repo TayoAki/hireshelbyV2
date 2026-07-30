@@ -20,7 +20,7 @@ test.beforeEach(async ({ page }) => {
       json: {
         code: "qr-download-test",
         expires_at: Math.floor(Date.now() / 1000) + 86_400,
-        url: "buzz://join?relay=wss%3A%2F%2Frelay.example.com&code=qr-download-test",
+        url: "hireshelby://join?relay=wss%3A%2F%2Frelay.example.com&code=qr-download-test",
       },
       status: 200,
     });
@@ -61,7 +61,7 @@ test("copies a freshly minted invite link without showing a URL or QR code", asy
   });
 
   expect(payload).toEqual({
-    text: "buzz://join?relay=wss%3A%2F%2Frelay.example.com&code=qr-download-test",
+    text: "hireshelby://join?relay=wss%3A%2F%2Frelay.example.com&code=qr-download-test",
   });
 });
 

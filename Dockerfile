@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 #
-# Public Buzz relay image — published as ghcr.io/block/buzz:<tag>.
+# Public HireShelby relay image — published as ghcr.io/block/buzz:<tag>.
 #
 # Builds the `buzz-relay` binary (Rust 1.95) and the `buzz-web` static bundle
 # (pnpm + vite), then assembles them into a small debian-slim runtime with
@@ -124,11 +124,11 @@ FROM debian:${DEBIAN_VERSION}-slim AS runtime-base
 # OCI annotations: required for GHCR to auto-link the image to this repo and
 # inherit its visibility. org.opencontainers.image.source is the load-bearing
 # one — without it GHCR keeps the image private even when the repo is public.
-LABEL org.opencontainers.image.title="Buzz" \
-      org.opencontainers.image.description="WebSocket relay server for the Buzz communications platform" \
-      org.opencontainers.image.source="https://github.com/block/buzz" \
-      org.opencontainers.image.url="https://github.com/block/buzz" \
-      org.opencontainers.image.documentation="https://github.com/block/buzz#readme" \
+LABEL org.opencontainers.image.title="HireShelby" \
+      org.opencontainers.image.description="WebSocket relay server for the HireShelby communications platform" \
+      org.opencontainers.image.source="https://github.com/hireshelby/hireshelby" \
+      org.opencontainers.image.url="https://github.com/hireshelby/hireshelby" \
+      org.opencontainers.image.documentation="https://github.com/hireshelby/hireshelby#readme" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 RUN apt-get update \

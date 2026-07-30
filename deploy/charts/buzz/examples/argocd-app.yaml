@@ -1,4 +1,4 @@
-# ArgoCD Application — GitOps-safe Buzz install.
+# ArgoCD Application — GitOps-safe HireShelby install.
 #
 # Prerequisite: a Secret named `buzz-secrets` in namespace `buzz` containing
 # (any subset of) the keys consumed by `secrets.existingSecret`. See

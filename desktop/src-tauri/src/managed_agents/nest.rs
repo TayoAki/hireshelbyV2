@@ -1,7 +1,7 @@
-//! Buzz Nest — persistent agent workspace at `~/.buzz`.
+//! HireShelby Nest — persistent agent workspace at `~/.buzz`.
 //!
 //! Creates a shared knowledge directory on first launch so every
-//! Buzz-spawned agent starts with orientation (AGENTS.md) and a
+//! HireShelby-spawned agent starts with orientation (AGENTS.md) and a
 //! place to accumulate research, plans, and logs across sessions.
 //!
 //! Static template content in AGENTS.md (above the managed-section markers)
@@ -62,7 +62,7 @@ const CANONICAL_SKILL_DIR: &str = ".agents/skills/buzz-cli";
 const NEST_DIR_PROD: &str = ".buzz";
 
 /// Nest directory name for dev builds. Dev builds (those whose Tauri app-data
-/// directory name starts with `"xyz.block.buzz.app.dev"`) use a separate nest
+/// directory name starts with `"com.hireshelby.app.dev"`) use a separate nest
 /// so that the DMG and dev-build instances don't clobber each other's
 /// `.repos-dir` dotfile and `REPOS` symlink.
 const NEST_DIR_DEV: &str = ".buzz-dev";
@@ -83,7 +83,7 @@ static NEST_DIR: std::sync::OnceLock<Option<PathBuf>> = std::sync::OnceLock::new
 /// `OnceLock` is set exactly once.
 ///
 /// `is_dev` should be `true` when the running binary is a dev build — i.e.
-/// when the Tauri app-data directory name starts with `"xyz.block.buzz.app.dev"`.
+/// when the Tauri app-data directory name starts with `"com.hireshelby.app.dev"`.
 /// Pass `false` for production (signed DMG) builds.
 pub fn init_nest_dir(is_dev: bool) {
     let suffix = if is_dev { NEST_DIR_DEV } else { NEST_DIR_PROD };
@@ -121,7 +121,7 @@ fn path_is_dev_nest(path: &std::path::Path) -> bool {
 ///
 /// This is `true` for all dev builds — `just staging` and `just dev` — because
 /// [`init_nest_dir`] is called with `is_dev = true` when the Tauri app-data
-/// directory starts with `"xyz.block.buzz.app.dev"`.
+/// directory starts with `"com.hireshelby.app.dev"`.
 ///
 /// Returns `false` when:
 /// - The nest is the production nest (`~/.buzz`, signed DMG).
@@ -131,7 +131,7 @@ pub fn nest_is_dev() -> bool {
     nest_dir().map(|p| path_is_dev_nest(&p)).unwrap_or(false)
 }
 
-/// Creates the Buzz nest at `~/.buzz` if it doesn't already exist.
+/// Creates the HireShelby nest at `~/.buzz` if it doesn't already exist.
 ///
 /// Delegates to [`ensure_nest_at`] with the resolved nest directory.
 /// Returns an error string if the home directory cannot be resolved.
@@ -140,7 +140,7 @@ pub fn ensure_nest() -> Result<(), String> {
     ensure_nest_at(&root)
 }
 
-/// Creates a Buzz nest at the given `root` path.
+/// Creates a HireShelby nest at the given `root` path.
 ///
 /// - Creates the root directory and all subdirectories.
 /// - Writes `AGENTS.md` only if it doesn't already exist.
@@ -554,7 +554,7 @@ pub fn render_dynamic_section(
     relay_url: &str,
 ) -> String {
     let active_agents = if agents.is_empty() {
-        "## Active Agents\n\n*(No agents deployed yet. Add agents in the Buzz desktop app.)*"
+        "## Active Agents\n\n*(No agents deployed yet. Add agents in the HireShelby desktop app.)*"
             .to_string()
     } else {
         let mut table =

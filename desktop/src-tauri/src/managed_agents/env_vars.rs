@@ -5,7 +5,7 @@
 //! Precedence: desktop parent env < persona env < agent env (last wins on
 //! key collision). See `runtime::spawn_agent_child`.
 //!
-//! A small set of *reserved* keys — Buzz's identity and secrets — are
+//! A small set of *reserved* keys — HireShelby's identity and secrets — are
 //! rejected at save time and stripped at runtime so a typo or malicious
 //! value can't swap the agent's nsec. Behavior knobs (GOOSE_MODE, BUZZ_ACP_MODEL, BUZZ_ACP_SYSTEM_PROMPT, …) remain
 //! freely overridable — those have dedicated UI fields, but power users
@@ -39,7 +39,7 @@ pub(crate) fn is_derived_provider_model_key(key: &str) -> bool {
         .any(|k| k.eq_ignore_ascii_case(key))
 }
 
-/// Env var keys that Buzz sets itself and users must not override from
+/// Env var keys that HireShelby sets itself and users must not override from
 /// the persona/agent env_vars UI. Three categories:
 ///
 /// 1. **Identity / secrets** — overriding would swap the agent's nsec or
@@ -193,7 +193,7 @@ pub fn validate_user_env_keys(env_vars: &BTreeMap<String, String>) -> Result<(),
     reserved.dedup();
     if !reserved.is_empty() {
         return Err(format!(
-            "the following env vars are reserved by Buzz and cannot be overridden: {}",
+            "the following env vars are reserved by HireShelby and cannot be overridden: {}",
             reserved.join(", ")
         ));
     }

@@ -178,7 +178,7 @@ final currentPubkeyProvider = Provider<String?>((ref) {
 
 /// Extracts the unique member pubkeys advertised by relay membership events.
 ///
-/// Buzz relays use `member` tags, while older NIP-29-compatible relays may
+/// HireShelby relays use `member` tags, while older NIP-29-compatible relays may
 /// still expose the same directory through `p` tags.
 @visibleForTesting
 List<String> relayMemberPubkeysFromEvents(List<NostrEvent> events) {

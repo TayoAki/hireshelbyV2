@@ -112,7 +112,7 @@ pub(crate) fn relay_url_for_tenant_host(config_relay_url: &str, tenant_host: &st
 }
 
 /// Extract the domain (host) from a URL string.
-/// e.g. "ws://localhost:3000" → "localhost", "wss://buzz.block.xyz" → "buzz.block.xyz"
+/// e.g. "ws://localhost:3000" → "localhost", "wss://relay.hireshelby.com" → "relay.hireshelby.com"
 pub(crate) fn extract_domain(url: &str) -> String {
     url.trim_start_matches("wss://")
         .trim_start_matches("ws://")

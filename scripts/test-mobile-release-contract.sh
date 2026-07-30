@@ -37,7 +37,7 @@ case "${1:-}:${2:-}" in
       exit 0
     fi
     if [[ "${GH_WORKFLOW_EXTRA_URL:-}" == "1" ]]; then
-      printf '%s\n' 'https://github.com/block/buzz/actions/runs/998'
+      printf '%s\n' 'https://github.com/hireshelby/hireshelby/actions/runs/998'
     fi
     version=""
     number=""
@@ -55,7 +55,7 @@ case "${1:-}:${2:-}" in
     if [[ "${GH_WORKFLOW_NO_URL:-}" == "1" ]]; then
       exit 0
     fi
-    printf 'https://github.com/block/buzz/actions/runs/%s\n' "$number"
+    printf 'https://github.com/hireshelby/hireshelby/actions/runs/%s\n' "$number"
     ;;
   run:watch)
     [[ "${GH_WORKFLOW_FAIL:-}" != "1" ]] || exit 1
@@ -72,7 +72,7 @@ case "${1:-}:${2:-}" in
         "mobile-v${version}-rc.${expected}" "$sha"
     else
       git -C "$GH_WORKTREE" -c tag.gpgSign=false tag -a \
-        -m "Buzz Mobile $version release candidate $expected" \
+        -m "HireShelby Mobile $version release candidate $expected" \
         "mobile-v${version}-rc.${expected}" "$sha"
     fi
     git -C "$GH_WORKTREE" -c core.hooksPath=/dev/null push -q \

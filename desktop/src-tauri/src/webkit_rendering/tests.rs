@@ -85,7 +85,7 @@ fn test_an_appimage_launch_disables_the_dmabuf_renderer() {
     // No NVIDIA GPU: the AppImage signal has to carry this on its own, which is
     // #2338's reporter (Intel Mesa under the AppRun's pinned XWayland backend).
     let drm = drm(&["0x8086"]);
-    let env = env_from(&[("APPIMAGE", "/home/u/Buzz.AppImage")]);
+    let env = env_from(&[("APPIMAGE", "/home/u/HireShelby.AppImage")]);
     let plan = plan(NO_ARGS, &env, drm.path());
 
     assert_eq!(
@@ -185,7 +185,7 @@ fn test_safe_rendering_applies_the_safest_set_without_any_hardware_signal() {
     // The escape hatch exists for the machine neither signal recognises, so it
     // must not depend on either one.
     let drm = drm(&["0x8086"]);
-    let args = ["buzz://channel/1", SAFE_RENDERING];
+    let args = ["hireshelby://channel/1", SAFE_RENDERING];
     let plan = plan(args, &env_from(&[]), drm.path());
 
     assert_eq!(

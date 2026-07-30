@@ -36,7 +36,7 @@ export const ONBOARDING_INK_ICON_CLASS =
 
 /**
  * Shared onboarding chrome shown on every page after the landing screen: a
- * static Buzz mark pinned to the top-left, and a centered pagination track that
+ * static HireShelby mark pinned to the top-left, and a centered pagination track that
  * sits above the page title. The active page reads as a longer bar; inactive
  * pages are dots.
  */

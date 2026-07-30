@@ -12,7 +12,7 @@ function runtime(
     id,
     label:
       id === "buzz-agent"
-        ? "Buzz Agent"
+        ? "HireShelby Agent"
         : id === "claude"
           ? "Claude Code"
           : id === "codex"
@@ -92,7 +92,7 @@ test("setup distinguishes a missing CLI from an installed desktop app", async ({
           "not_installed",
           { status: "unknown" },
           {
-            install_hint: "Buzz talks to Codex through the Codex CLI.",
+            install_hint: "HireShelby talks to Codex through the Codex CLI.",
             install_instructions_url:
               "https://developers.openai.com/codex/cli/",
           },
@@ -860,7 +860,7 @@ test("Finish stays disabled until a provider-required harness is fully configure
   // buzz-agent auto-selects as the only ready harness, but with no provider
   // configured the default is not launchable — Finish must be gated.
   await expect(page.getByTestId("global-agent-default-harness")).toHaveText(
-    "Buzz",
+    "HireShelby",
   );
   const finish = page.getByTestId("onboarding-finish");
   await expect(finish).toBeDisabled();
@@ -911,7 +911,7 @@ test("baked build config keeps Finish enabled without manual provider setup", as
   // Internal builds bake provider/model/credentials — the gate must treat
   // baked config as complete and never block Finish.
   await expect(page.getByTestId("global-agent-default-harness")).toHaveText(
-    "Buzz",
+    "HireShelby",
   );
   await expect(page.getByTestId("onboarding-finish")).toBeEnabled();
 });

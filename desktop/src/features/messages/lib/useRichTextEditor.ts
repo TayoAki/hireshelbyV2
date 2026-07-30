@@ -465,10 +465,10 @@ export function useRichTextEditor({
           openOnClick: false,
           autolink: true,
           linkOnPaste: true,
-          // Allow Buzz message links through TipTap's URL sanitiser.
+          // Allow HireShelby message links through TipTap's URL sanitiser.
           // http(s) and mailto are accepted by default; non-listed protocols are
           // stripped on paste/typed input.
-          protocols: ["buzz"],
+          protocols: ["hireshelby"],
           HTMLAttributes: {
             class: "text-primary underline underline-offset-4 cursor-text",
           },

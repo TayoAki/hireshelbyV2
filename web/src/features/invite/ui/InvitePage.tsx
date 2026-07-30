@@ -110,7 +110,7 @@ export function InvitePage({ code }: { code: string }) {
       const receipt = await acceptPolicy();
       const query = new URLSearchParams({ relay, code });
       if (receipt) query.set("policy_receipt", receipt);
-      window.location.href = `buzz://join?${query.toString()}`;
+      window.location.href = `hireshelby://join?${query.toString()}`;
     } finally {
       setOpening(false);
     }
@@ -197,7 +197,7 @@ export function InvitePage({ code }: { code: string }) {
             className="h-12 w-12 overflow-hidden bg-black"
             style={{ borderRadius: "22.37%" }}
           >
-            <img alt="Buzz" className="h-full w-full" src={buzzAppIcon} />
+            <img alt="HireShelby" className="h-full w-full" src={buzzAppIcon} />
           </div>
           <h1 className="mt-4 text-2xl font-semibold tracking-tight text-black">
             You&apos;re invited to
@@ -245,9 +245,9 @@ export function InvitePage({ code }: { code: string }) {
                 }`}
               >
                 <a
-                  href={`buzz://join?relay=${encodeURIComponent(relay)}&code=${encodeURIComponent(code)}`}
+                  href={`hireshelby://join?relay=${encodeURIComponent(relay)}&code=${encodeURIComponent(code)}`}
                 >
-                  Accept invite in Buzz
+                  Accept invite in HireShelby
                 </a>
               </Button>
             ) : (
@@ -260,7 +260,7 @@ export function InvitePage({ code }: { code: string }) {
                 disabled={disabled}
                 onClick={openInvite}
               >
-                Accept invite in Buzz
+                Accept invite in HireShelby
               </Button>
             )}
             {browserJoinError ? (

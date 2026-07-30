@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ConfigOrigin {
-    /// Explicitly set in Buzz UI / ManagedAgentRecord (highest precedence).
+    /// Explicitly set in HireShelby UI / ManagedAgentRecord (highest precedence).
     BuzzExplicit,
     /// Returned by ACP `_goose/unstable/config/read` (tier 1a).
     AcpNativeRead,
@@ -52,7 +52,7 @@ pub enum ConfigWriteMechanism {
     /// Not yet constructed by any reader; will be wired when config/read+write
     /// are available in the harness.
     GooseNativeConfigWrite { config_key: String },
-    /// Not writable through Buzz.
+    /// Not writable through HireShelby.
     ReadOnly,
 }
 

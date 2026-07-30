@@ -13,7 +13,7 @@ require_canonical_repository() {
   origin_url="$(git config --get remote.origin.url 2>/dev/null)" || \
     fail_release_ruleset "origin is required and must point to block/buzz" || return 1
   case "$origin_url" in
-    git@github.com:block/buzz.git|ssh://git@github.com/block/buzz.git|https://github.com/block/buzz.git|https://github.com/block/buzz)
+    git@github.com:block/buzz.git|ssh://git@github.com/hireshelby/hireshelby.git|https://github.com/hireshelby/hireshelby.git|https://github.com/hireshelby/hireshelby)
       ;;
     *)
       fail_release_ruleset "origin must point to canonical block/buzz, not '$origin_url'" || return 1

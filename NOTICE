@@ -1,0 +1,43 @@
+HireShelby
+Copyright 2026 HireShelby
+
+This product is a derivative work of Buzz (https://github.com/block/buzz),
+Copyright 2026 Block, Inc., licensed under the Apache License, Version 2.0.
+
+You may obtain a copy of the License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+------------------------------------------------------------------------------
+Modifications
+------------------------------------------------------------------------------
+
+The following significant changes were made to the original Buzz work, as
+required by Section 4(b) of the Apache License, Version 2.0:
+
+  * Rebranded the product from "Buzz" to "HireShelby" across user-facing
+    surfaces, documentation, and application metadata.
+  * Changed the desktop application bundle identifier from "xyz.block.buzz.app"
+    to "com.hireshelby.app".
+  * Changed the deep-link URL scheme from "buzz://" to "hireshelby://".
+  * Repointed release, update, and download endpoints away from Block, Inc.
+    infrastructure to HireShelby-controlled endpoints.
+  * Changed the security contact address and project governance.
+  * Removed references to Block, Inc. internal build, deployment, and release
+    infrastructure.
+
+------------------------------------------------------------------------------
+Third-Party Attributions
+------------------------------------------------------------------------------
+
+Bundled third-party assets and their attributions are listed in:
+
+    desktop/public/harness-logos/CREDITS.md
+
+------------------------------------------------------------------------------
+
+HireShelby is not affiliated with, endorsed by, or supported by Block, Inc.
+"Buzz", "Block", and "Square" are trademarks of Block, Inc. and are used here
+only for accurate attribution of the upstream work, as permitted by nominative
+fair use. No trademark rights are granted by the Apache License, Version 2.0
+(see Section 6 of the License).

@@ -57,7 +57,7 @@ class App extends HookConsumerWidget {
       ref.watch(userStatusCacheProvider);
     }
 
-    // Start listening for buzz:// links immediately (even pre-auth) so a
+    // Start listening for hireshelby:// links immediately (even pre-auth) so a
     // cold-start link survives until the authenticated UI can dispatch it.
     ref.watch(pendingDeepLinkProvider);
 
@@ -80,7 +80,7 @@ class App extends HookConsumerWidget {
     });
 
     return MaterialApp(
-      title: 'Buzz',
+      title: 'HireShelby',
       theme: AppTheme.light(
         colorScheme: lightScheme,
         topSectionGradient: buzzLightGradient,
@@ -122,7 +122,7 @@ class _SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
-        child: BuzzLoadingIndicator(size: 56, semanticLabel: 'Starting Buzz'),
+        child: BuzzLoadingIndicator(size: 56, semanticLabel: 'Starting HireShelby'),
       ),
     );
   }

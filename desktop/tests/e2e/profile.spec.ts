@@ -342,10 +342,10 @@ test("shows profile save feedback as a toast", async ({ page }) => {
 });
 
 test("nests the avatar edit button in a clipped notch", async ({ page }) => {
-  // Under the Buzz default theme the settings nav overrides `--sidebar-active`
+  // Under the HireShelby default theme the settings nav overrides `--sidebar-active`
   // (white pill on the gradient) while the avatar edit button deliberately
   // keeps the root accent-driven token, so the shared-token comparison below
-  // only holds outside the Buzz theme.
+  // only holds outside the HireShelby theme.
   await page.addInitScript(() => {
     window.localStorage.setItem("buzz-theme", "github-light");
   });
@@ -1403,8 +1403,8 @@ test("opens settings with the keyboard shortcut and updates theme", async ({
   ).toBeVisible();
   await page.getByTestId("settings-nav-appearance").click();
 
-  // Default is Buzz in System mode; Playwright's default color scheme is
-  // light, so the app boots with the light Buzz theme.
+  // Default is HireShelby in System mode; Playwright's default color scheme is
+  // light, so the app boots with the light HireShelby theme.
   await expect
     .poll(() =>
       page.evaluate(() => document.documentElement.classList.contains("light")),

@@ -57,7 +57,7 @@ pub struct RuntimeFileConfigSubset {
 /// The re-tag is triple-gated — a field is re-tagged only when (a) the record
 /// did not already have it (`!had_*`), (b) the surface produced the field, and
 /// (c) the reader tagged it `BuzzExplicit`. A value the user set explicitly in
-/// Buzz keeps `had_* == true` and is never re-tagged.
+/// HireShelby keeps `had_* == true` and is never re-tagged.
 fn resolve_config_surface(
     mut record: ManagedAgentRecord,
     personas: &[AgentDefinition],

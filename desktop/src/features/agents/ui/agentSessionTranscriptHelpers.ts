@@ -35,7 +35,7 @@ export function parsePromptText(text: string): {
 
   const eventSection = sections.find((section) => {
     const title = section.title.toLowerCase();
-    return title.startsWith("buzz event");
+    return title.startsWith("hireshelby event");
   });
   const eventContent = eventSection
     ? extractEventContent(eventSection.body)
@@ -49,7 +49,7 @@ export function parsePromptText(text: string): {
   return {
     sections,
     userText: eventContent,
-    userTitle: eventKind ? titleCase(eventKind) : "Buzz event",
+    userTitle: eventKind ? titleCase(eventKind) : "HireShelby event",
     userPubkey: eventAuthorPubkey,
     userEventId: eventId,
   };

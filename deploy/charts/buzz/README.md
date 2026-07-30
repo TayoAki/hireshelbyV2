@@ -1,6 +1,6 @@
-# Buzz Helm Chart
+# HireShelby Helm Chart
 
-[Buzz](https://github.com/block/buzz) is a Nostr-based messaging platform for human–agent collaboration: a single relay binary serving WebSocket + REST + web UI, backed by PostgreSQL, Redis, and S3-compatible object storage.
+[HireShelby](https://github.com/hireshelby/hireshelby) is a Nostr-based messaging platform for human–agent collaboration: a single relay binary serving WebSocket + REST + web UI, backed by PostgreSQL, Redis, and S3-compatible object storage.
 
 This chart has two operating profiles selected by values:
 
@@ -54,7 +54,7 @@ The chart fails at `helm install` / `helm template` time with a clear message if
 
 ## S3 URL addressing
 
-Buzz uses one URL style for both media and Git/CAS object-store requests:
+HireShelby uses one URL style for both media and Git/CAS object-store requests:
 
 | `s3.addressingStyle` | Request shape | Use for |
 |---|---|---|
@@ -147,7 +147,7 @@ defaults; non-empty values override its entrypoint and arguments respectively.
 
 ## Device pairing relay
 
-The chart can run Buzz's stateless pairing WebSocket relay as an independent
+The chart can run HireShelby's stateless pairing WebSocket relay as an independent
 Deployment and Service using the same image as the main relay:
 
 ```yaml
@@ -156,7 +156,7 @@ pairingRelay:
   url: wss://pairing.example.com
 ```
 
-`pairingRelay.url` is advertised in the main relay's NIP-11 document so Buzz
+`pairingRelay.url` is advertised in the main relay's NIP-11 document so HireShelby
 clients connect directly to the dedicated endpoint. The chart does not create
 an Ingress or HTTPRoute for the pairing Service; route the public hostname to
 `<release>-buzz-pairing:5000` with your platform's ingress configuration.

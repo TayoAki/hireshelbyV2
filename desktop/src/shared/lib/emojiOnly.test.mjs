@@ -17,6 +17,7 @@ test("detects unicode emoji-only messages", () => {
 test("detects known custom emoji-only shortcode messages", () => {
   assert.equal(isEmojiOnlyMessage(":buzz:", CUSTOM_EMOJI), true);
   assert.equal(isEmojiOnlyMessage(":buzz: :party_parrot:", CUSTOM_EMOJI), true);
+  // Case-insensitive match against the `buzz` shortcode fixture above.
   assert.equal(isEmojiOnlyMessage(":Buzz:", CUSTOM_EMOJI), true);
 });
 

@@ -1,4 +1,4 @@
-//! Network utility functions for Buzz.
+//! Network utility functions for HireShelby.
 //!
 //! Provides shared helpers used across crates for SSRF protection and
 //! IP address classification.

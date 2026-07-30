@@ -104,7 +104,7 @@ fn activate_main_window(app: &tauri::AppHandle) {
     }
 }
 
-/// Parse the query string of a `buzz://message?…` URL into the JSON
+/// Parse the query string of a `hireshelby://message?…` URL into the JSON
 /// payload emitted on `deep-link-message`. Returns `None` when a required
 /// param (`channel`, `id`) is missing or empty — mirroring the validation
 /// policy of the `connect` arm so the frontend never sees a half-formed
@@ -136,7 +136,7 @@ fn parse_message_deep_link(url: &Url) -> Option<serde_json::Value> {
     }))
 }
 
-/// Parse the query string of a `buzz://join?…` URL into the JSON payload
+/// Parse the query string of a `hireshelby://join?…` URL into the JSON payload
 /// emitted on `deep-link-join`. Requires a ws(s) `relay` URL and a non-empty
 /// `code`; returns `None` otherwise so the frontend never sees a half-formed
 /// payload.
@@ -291,10 +291,10 @@ fn parse_nostr_bind_deep_link(url: &Url) -> Result<NostrBindDeepLinkPayload, Str
     })
 }
 
-/// Handle an incoming `buzz://` deep link URL.
+/// Handle an incoming `hireshelby://` deep link URL.
 ///
 /// Currently supports:
-/// - `buzz://connect?relay=<ws(s)://...>` — emits `deep-link-connect` to the frontend
+/// - `hireshelby://connect?relay=<ws(s)://...>` — emits `deep-link-connect` to the frontend
 pub(crate) fn handle_deep_link_url(app: &tauri::AppHandle, url_str: &str) {
     let url = match Url::parse(url_str) {
         Ok(u) => u,
@@ -304,7 +304,7 @@ pub(crate) fn handle_deep_link_url(app: &tauri::AppHandle, url_str: &str) {
         }
     };
 
-    if url.scheme() != "buzz" {
+    if url.scheme() != "hireshelby" {
         eprintln!("buzz-desktop: ignoring unsupported deep link scheme: {url_str}");
         return;
     }
@@ -320,7 +320,7 @@ pub(crate) fn handle_deep_link_url(app: &tauri::AppHandle, url_str: &str) {
             let _ = app.emit("deep-link-connect", relay_url);
         }
         Some("join") => {
-            // `buzz://join?relay=<ws(s)://...>&code=<invite code>` — fired by
+            // `hireshelby://join?relay=<ws(s)://...>&code=<invite code>` — fired by
             // the relay's /invite/<code> landing page. The frontend claims the
             // invite against the relay's HTTP API, then adds the workspace.
             let Some(payload) = parse_join_deep_link(&url) else {
@@ -351,7 +351,7 @@ pub(crate) fn handle_deep_link_url(app: &tauri::AppHandle, url_str: &str) {
             let _ = app.emit("deep-link-add-community", payload);
         }
         Some("message") => {
-            // `buzz://message?channel=<uuid>&id=<eventId>[&thread=<rootId>]`
+            // `hireshelby://message?channel=<uuid>&id=<eventId>[&thread=<rootId>]`
             //
             // Validation policy mirrors the `connect` arm: parse what we
             // need, refuse to emit anything if a required param is missing
@@ -435,7 +435,7 @@ mod tests {
 
     fn valid_nostr_bind_url() -> Url {
         Url::parse(
-            "buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard",
+            "hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard",
         )
         .unwrap()
     }
@@ -443,19 +443,19 @@ mod tests {
     #[test]
     fn parse_add_community_deep_link_extracts_relay_and_name() {
         let url = Url::parse(
-            "buzz://add-community?relay=wss%3A%2F%2Facme.communities.buzz.xyz&name=Acme%20Team&ignored=value",
+            "hireshelby://add-community?relay=wss%3A%2F%2Facme.communities.hireshelby.com&name=Acme%20Team&ignored=value",
         )
         .unwrap();
         let payload = parse_add_community_deep_link(&url).unwrap();
-        assert_eq!(payload.relay_url, "wss://acme.communities.buzz.xyz");
+        assert_eq!(payload.relay_url, "wss://acme.communities.hireshelby.com");
         assert_eq!(payload.name.as_deref(), Some("Acme Team"));
     }
 
     #[test]
     fn parse_add_community_deep_link_accepts_an_omitted_or_empty_name() {
         for raw in [
-            "buzz://add-community?relay=wss%3A%2F%2Facme.example",
-            "buzz://add-community?relay=wss%3A%2F%2Facme.example&name=",
+            "hireshelby://add-community?relay=wss%3A%2F%2Facme.example",
+            "hireshelby://add-community?relay=wss%3A%2F%2Facme.example&name=",
         ] {
             assert!(parse_add_community_deep_link(&Url::parse(raw).unwrap())
                 .unwrap()
@@ -467,11 +467,11 @@ mod tests {
     #[test]
     fn parse_add_community_deep_link_rejects_invalid_relays() {
         for raw in [
-            "buzz://add-community",
-            "buzz://add-community?relay=",
-            "buzz://add-community?relay=not-a-url",
-            "buzz://add-community?relay=https%3A%2F%2Facme.example",
-            "buzz://add-community?relay=wss%3A%2F%2F",
+            "hireshelby://add-community",
+            "hireshelby://add-community?relay=",
+            "hireshelby://add-community?relay=not-a-url",
+            "hireshelby://add-community?relay=https%3A%2F%2Facme.example",
+            "hireshelby://add-community?relay=wss%3A%2F%2F",
         ] {
             assert!(parse_add_community_deep_link(&Url::parse(raw).unwrap()).is_none());
         }
@@ -479,7 +479,7 @@ mod tests {
 
     #[test]
     fn parse_message_deep_link_extracts_required_params() {
-        let url = Url::parse("buzz://message?channel=abc&id=xyz").unwrap();
+        let url = Url::parse("hireshelby://message?channel=abc&id=xyz").unwrap();
         let payload = parse_message_deep_link(&url).expect("required params present");
         assert_eq!(payload["channelId"], "abc");
         assert_eq!(payload["messageId"], "xyz");
@@ -488,7 +488,7 @@ mod tests {
 
     #[test]
     fn parse_message_deep_link_accepts_buzz_scheme() {
-        let url = Url::parse("buzz://message?channel=abc&id=xyz").unwrap();
+        let url = Url::parse("hireshelby://message?channel=abc&id=xyz").unwrap();
         let payload = parse_message_deep_link(&url).expect("required params present");
         assert_eq!(payload["channelId"], "abc");
         assert_eq!(payload["messageId"], "xyz");
@@ -496,40 +496,41 @@ mod tests {
 
     #[test]
     fn parse_message_deep_link_includes_thread_root() {
-        let url = Url::parse("buzz://message?channel=abc&id=xyz&thread=root1").unwrap();
+        let url = Url::parse("hireshelby://message?channel=abc&id=xyz&thread=root1").unwrap();
         let payload = parse_message_deep_link(&url).expect("required params present");
         assert_eq!(payload["threadRootId"], "root1");
     }
 
     #[test]
     fn parse_message_deep_link_rejects_missing_id() {
-        let url = Url::parse("buzz://message?channel=abc").unwrap();
+        let url = Url::parse("hireshelby://message?channel=abc").unwrap();
         assert!(parse_message_deep_link(&url).is_none());
     }
 
     #[test]
     fn parse_message_deep_link_rejects_empty_channel() {
         // Regression: `channel=&id=foo` previously produced channelId: "".
-        let url = Url::parse("buzz://message?channel=&id=foo").unwrap();
+        let url = Url::parse("hireshelby://message?channel=&id=foo").unwrap();
         assert!(parse_message_deep_link(&url).is_none());
     }
 
     #[test]
     fn parse_message_deep_link_rejects_empty_id() {
-        let url = Url::parse("buzz://message?channel=abc&id=").unwrap();
+        let url = Url::parse("hireshelby://message?channel=abc&id=").unwrap();
         assert!(parse_message_deep_link(&url).is_none());
     }
 
     #[test]
     fn parse_message_deep_link_treats_empty_thread_as_absent() {
-        let url = Url::parse("buzz://message?channel=abc&id=xyz&thread=").unwrap();
+        let url = Url::parse("hireshelby://message?channel=abc&id=xyz&thread=").unwrap();
         let payload = parse_message_deep_link(&url).expect("required params present");
         assert!(payload["threadRootId"].is_null());
     }
 
     #[test]
     fn parse_join_deep_link_extracts_relay_and_code() {
-        let url = Url::parse("buzz://join?relay=wss%3A%2F%2Frelay.example&code=abc.def").unwrap();
+        let url =
+            Url::parse("hireshelby://join?relay=wss%3A%2F%2Frelay.example&code=abc.def").unwrap();
         let payload = parse_join_deep_link(&url).expect("required params present");
         assert_eq!(payload["relayUrl"], "wss://relay.example");
         assert_eq!(payload["code"], "abc.def");
@@ -539,7 +540,7 @@ mod tests {
     #[test]
     fn parse_join_deep_link_extracts_policy_receipt() {
         let url = Url::parse(
-            "buzz://join?relay=wss%3A%2F%2Frelay.example&code=abc.def&policy_receipt=receipt.value",
+            "hireshelby://join?relay=wss%3A%2F%2Frelay.example&code=abc.def&policy_receipt=receipt.value",
         )
         .unwrap();
         let payload = parse_join_deep_link(&url).expect("required params present");
@@ -548,25 +549,26 @@ mod tests {
 
     #[test]
     fn parse_join_deep_link_rejects_missing_code() {
-        let url = Url::parse("buzz://join?relay=wss%3A%2F%2Frelay.example").unwrap();
+        let url = Url::parse("hireshelby://join?relay=wss%3A%2F%2Frelay.example").unwrap();
         assert!(parse_join_deep_link(&url).is_none());
     }
 
     #[test]
     fn parse_join_deep_link_rejects_empty_code() {
-        let url = Url::parse("buzz://join?relay=wss%3A%2F%2Frelay.example&code=").unwrap();
+        let url = Url::parse("hireshelby://join?relay=wss%3A%2F%2Frelay.example&code=").unwrap();
         assert!(parse_join_deep_link(&url).is_none());
     }
 
     #[test]
     fn parse_join_deep_link_rejects_missing_relay() {
-        let url = Url::parse("buzz://join?code=abc.def").unwrap();
+        let url = Url::parse("hireshelby://join?code=abc.def").unwrap();
         assert!(parse_join_deep_link(&url).is_none());
     }
 
     #[test]
     fn parse_join_deep_link_rejects_non_websocket_relay() {
-        let url = Url::parse("buzz://join?relay=https%3A%2F%2Frelay.example&code=abc.def").unwrap();
+        let url =
+            Url::parse("hireshelby://join?relay=https%3A%2F%2Frelay.example&code=abc.def").unwrap();
         assert!(parse_join_deep_link(&url).is_none());
     }
 
@@ -588,7 +590,7 @@ mod tests {
 
     #[test]
     fn parse_nostr_bind_deep_link_accepts_same_origin_callback_url() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard&callback_url=https%3A%2F%2Fexample.com%2Fbuzz%3FmockSession%3D1").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard&callback_url=https%3A%2F%2Fexample.com%2Fbuzz%3FmockSession%3D1").unwrap();
         let payload = parse_nostr_bind_deep_link(&url).unwrap();
         assert_eq!(
             payload.callback_url.as_deref(),
@@ -598,7 +600,7 @@ mod tests {
 
     #[test]
     fn parse_nostr_bind_deep_link_accepts_browser_fragment_return() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=browser_fragment_v1&callback_url=https%3A%2F%2Fexample.com%2Fbuzz").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=browser_fragment_v1&callback_url=https%3A%2F%2Fexample.com%2Fbuzz").unwrap();
         let payload = parse_nostr_bind_deep_link(&url).unwrap();
 
         assert_eq!(payload.return_mode, "browser_fragment_v1");
@@ -610,7 +612,7 @@ mod tests {
 
     #[test]
     fn parse_nostr_bind_deep_link_requires_callback_for_browser_fragment_return() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=browser_fragment_v1").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=browser_fragment_v1").unwrap();
 
         assert_eq!(
             parse_nostr_bind_deep_link(&url).unwrap_err(),
@@ -620,91 +622,91 @@ mod tests {
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_cross_origin_callback_url() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard&callback_url=https%3A%2F%2Fevil.example%2Fbuzz").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard&callback_url=https%3A%2F%2Fevil.example%2Fbuzz").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_http_callback_url() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard&callback_url=http%3A%2F%2Fexample.com%2Fbuzz").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard&callback_url=http%3A%2F%2Fexample.com%2Fbuzz").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_missing_challenge_id() {
-        let url = Url::parse("buzz://nostr-bind?nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_empty_nonce() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_missing_verification_code() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_short_verification_code() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=12345&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=12345&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_long_verification_code() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=1234567&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=1234567&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_non_digit_verification_code() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=12345a&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=12345a&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_wrong_action() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=wrong&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=wrong&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_wrong_audience() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=other&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=other&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_non_https_origin() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=http%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=http%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_origin_with_path() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com%2Fbind&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com%2Fbind&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_origin_with_credentials() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fuser%40example.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fuser%40example.com&expires_at=2999-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_rejects_unsupported_return_mode() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=callback").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2999-01-01T00%3A00%3A00Z&return=callback").unwrap();
         assert!(parse_nostr_bind_deep_link(&url).is_err());
     }
 
     #[test]
     fn parse_nostr_bind_deep_link_accepts_expired_link_for_user_facing_error() {
-        let url = Url::parse("buzz://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2000-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
+        let url = Url::parse("hireshelby://nostr-bind?challenge_id=550e8400-e29b-41d4-a716-446655440000&nonce=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi01234567&verification_code=123456&audience=buzz%3Anostr-identity&action=bind_nostr_identity&protocol=buzz-nostr-identity&version=1&origin=https%3A%2F%2Fexample.com&expires_at=2000-01-01T00%3A00%3A00Z&return=clipboard").unwrap();
         let payload = parse_nostr_bind_deep_link(&url).unwrap();
         assert_eq!(payload.expires_at, "2000-01-01T00:00:00Z");
     }

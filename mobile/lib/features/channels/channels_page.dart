@@ -230,7 +230,7 @@ class ChannelsPage extends HookConsumerWidget {
       backgroundColor: Colors.transparent,
       appBar: FrostedAppBar(
         horizontalInset: _kTopSectionInset,
-        // Under a Buzz theme the community + account avatar strip carries the
+        // Under a HireShelby theme the community + account avatar strip carries the
         // branded gradient, the way desktop paints it across the sidebar. Null
         // under every other theme, leaving the default frosted fill.
         gradient: context.appColors.topSectionGradient,

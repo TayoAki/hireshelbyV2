@@ -21,7 +21,7 @@ use std::path::{Path, PathBuf};
 
 /// Sentinel path: `<app_data_dir.parent>/.<bundle_id>.reset-pending`
 /// where `bundle_id` is the file-name component of `app_data_dir`
-/// (e.g. `xyz.block.buzz.app` or `xyz.block.buzz.app.dev`).
+/// (e.g. `com.hireshelby.app` or `com.hireshelby.app.dev`).
 pub(crate) fn sentinel_path(app_data_dir: &Path) -> PathBuf {
     let bundle_id = app_data_dir
         .file_name()
@@ -391,7 +391,7 @@ mod tests {
         let dir = tmp
             .path()
             .join("Application Support")
-            .join("xyz.block.buzz.app");
+            .join("com.hireshelby.app");
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -552,7 +552,7 @@ mod tests {
         let app_data = tmp
             .path()
             .join("Application Support")
-            .join("xyz.block.buzz.app.dev");
+            .join("com.hireshelby.app.dev");
         std::fs::create_dir_all(&app_data).unwrap();
         write_sentinel(&app_data).unwrap();
 
@@ -588,7 +588,7 @@ mod tests {
         let app_data = tmp
             .path()
             .join("Application Support")
-            .join("xyz.block.buzz.app");
+            .join("com.hireshelby.app");
         std::fs::create_dir_all(&app_data).unwrap();
         write_sentinel(&app_data).unwrap();
 
@@ -695,7 +695,7 @@ mod tests {
         let app_data = tmp
             .path()
             .join("Application Support")
-            .join("xyz.block.buzz.app.dev");
+            .join("com.hireshelby.app.dev");
         std::fs::create_dir_all(&app_data).unwrap();
         write_sentinel(&app_data).unwrap();
 
@@ -757,13 +757,13 @@ mod tests {
     fn test_crash_retry_cleans_prior_deterministic_trash() {
         let tmp = TempDir::new().unwrap();
         let app_support = tmp.path().join("Application Support");
-        let app_data = app_support.join("xyz.block.buzz.app");
+        let app_data = app_support.join("com.hireshelby.app");
         std::fs::create_dir_all(&app_data).unwrap();
         write_sentinel(&app_data).unwrap();
 
         // Simulate a prior crashed boot: originals absent, deterministic trash
         // present from the crash (as if the process renamed then died).
-        let trash_app_dir = app_support.join("xyz.block.buzz.app.reset-trash");
+        let trash_app_dir = app_support.join("com.hireshelby.app.reset-trash");
         std::fs::create_dir_all(&trash_app_dir).unwrap();
         std::fs::write(trash_app_dir.join("identity.key"), b"old-key").unwrap();
 
@@ -791,7 +791,7 @@ mod tests {
     fn test_keychain_fail_restores_all_then_retry_cleans() {
         let tmp = TempDir::new().unwrap();
         let app_support = tmp.path().join("Application Support");
-        let app_data = app_support.join("xyz.block.buzz.app");
+        let app_data = app_support.join("com.hireshelby.app");
         std::fs::create_dir_all(&app_data).unwrap();
         std::fs::write(app_data.join("config.json"), b"{}").unwrap();
 
@@ -839,7 +839,7 @@ mod tests {
         assert!(!app_data.exists(), "app-data must be gone");
         assert!(!legacy.exists(), "legacy must be gone");
         // No trash directories should remain.
-        let trash_app = app_support.join("xyz.block.buzz.app.reset-trash");
+        let trash_app = app_support.join("com.hireshelby.app.reset-trash");
         let trash_legacy = app_support.join("xyz.block.sprout.app.reset-trash");
         assert!(!trash_app.exists(), "app trash must be cleaned");
         assert!(!trash_legacy.exists(), "legacy trash must be cleaned");

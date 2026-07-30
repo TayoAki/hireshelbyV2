@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 import XCTest
 
-@testable import Buzz
+@testable import HireShelby
 
 class RunnerTests: XCTestCase {
 

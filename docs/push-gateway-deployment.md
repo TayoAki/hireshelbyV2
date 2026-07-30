@@ -1,4 +1,4 @@
-# Buzz Push Gateway deployment
+# HireShelby Push Gateway deployment
 
 `buzz-push-gateway` is the standalone public APNs last hop intended for `push.buzz.xyz`. Build it with `Dockerfile.push-gateway`; do not run it in the relay image or give relays APNs credentials.
 
@@ -22,11 +22,11 @@
 | `BUZZ_PUSH_APNS_KEY_PATH` | Read-only mounted Apple APNs `.p8` provider key. |
 | `BUZZ_PUSH_APNS_KEY_ID` | APNs provider key id. |
 | `BUZZ_PUSH_APNS_TEAM_ID` | Apple developer team id. |
-| `BUZZ_PUSH_APNS_TOPIC` | Buzz iOS bundle id. |
+| `BUZZ_PUSH_APNS_TOPIC` | HireShelby iOS bundle id. |
 | `BUZZ_PUSH_GRANT_KEYS` | Capability AEAD keyring, `id:base64-32-bytes[,predecessor...]`; current key first. |
 | `BUZZ_PUSH_TOKEN_KEYS` | Independent token-custody AEAD keyring in the same format. Never reuse grant keys. |
 
-Optional endpoint quota policy variables are `BUZZ_PUSH_ENDPOINT_QUOTA_WINDOW_SECONDS` (default `10`, max `86400`) and `BUZZ_PUSH_ENDPOINT_QUOTA_MAX_DELIVERIES` (default `10`, max `10000`). These are Buzz policy hypotheses, not Apple-published limits; tune under load while retaining a hard ceiling.
+Optional endpoint quota policy variables are `BUZZ_PUSH_ENDPOINT_QUOTA_WINDOW_SECONDS` (default `10`, max `86400`) and `BUZZ_PUSH_ENDPOINT_QUOTA_MAX_DELIVERIES` (default `10`, max `10000`). These are HireShelby policy hypotheses, not Apple-published limits; tune under load while retaining a hard ceiling.
 
 ## Secret and key rotation rules
 

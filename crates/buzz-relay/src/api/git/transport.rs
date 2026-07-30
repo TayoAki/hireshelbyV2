@@ -1,4 +1,4 @@
-//! Smart HTTP git transport for Buzz.
+//! Smart HTTP git transport for HireShelby.
 //!
 //! Three endpoints implement the git Smart HTTP protocol:
 //! - `GET  /git/{owner}/{repo}/info/refs?service={svc}` — ref advertisement

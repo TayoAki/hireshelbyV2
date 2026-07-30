@@ -779,7 +779,7 @@ test("first-community owner can connect an existing hosted community", async ({
         {
           id: "owned-community",
           name: "North Star",
-          normalized_host: "north-star.communities.buzz.xyz",
+          normalized_host: "north-star.communities.hireshelby.com",
         },
       ],
     },
@@ -810,7 +810,7 @@ test("first-community owner can connect an existing hosted community", async ({
         window.localStorage.getItem("buzz-community-onboarding-transaction.v1"),
       ),
     )
-    .toContain("wss://north-star.communities.buzz.xyz");
+    .toContain("wss://north-star.communities.hireshelby.com");
   await page.getByTestId("community-profile-back").click();
   await expect(
     page.getByRole("heading", { name: "Choose a community" }),
@@ -852,7 +852,7 @@ test("first-community owner can create and connect a hosted community", async ({
   await page.getByTestId("community-choice-create").click();
   await page.getByRole("button", { name: "Sign in to continue" }).click();
   await expect(
-    page.getByRole("heading", { name: "Finish connecting Buzz" }),
+    page.getByRole("heading", { name: "Finish connecting HireShelby" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Connect and continue" }).click();
   const createSurface = page.getByTestId("hosted-community-create-surface");
@@ -899,7 +899,7 @@ test("first-community owner can create and connect a hosted community", async ({
         window.localStorage.getItem("buzz-community-onboarding-transaction.v1"),
       ),
     )
-    .toContain("wss://bee-lab.communities.buzz.xyz");
+    .toContain("wss://bee-lab.communities.hireshelby.com");
 });
 
 test("hosted community address line stays within the card for a long name", async ({
@@ -928,7 +928,7 @@ test("hosted community address line stays within the card for a long name", asyn
   await page.getByTestId("community-choice-create").click();
   await page.getByRole("button", { name: "Sign in to continue" }).click();
   await expect(
-    page.getByRole("heading", { name: "Finish connecting Buzz" }),
+    page.getByRole("heading", { name: "Finish connecting HireShelby" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Connect and continue" }).click();
 
@@ -1070,7 +1070,7 @@ test("first-community owner can replace a mismatched account identity", async ({
   await page.getByTestId("community-choice-create").click();
   await expect(
     page.getByRole("heading", {
-      name: "This account uses a different Buzz identity",
+      name: "This account uses a different HireShelby identity",
     }),
   ).toBeVisible();
   await page
@@ -1123,11 +1123,11 @@ test("first-community explains when the local identity belongs to another accoun
     .click();
   await expect(
     page.getByText(
-      "This device's Buzz identity belongs to a different Builderlab account and can't be moved from here. Sign out, then sign in with the account that already owns this identity.",
+      "This device's HireShelby identity belongs to a different Builderlab account and can't be moved from here. Sign out, then sign in with the account that already owns this identity.",
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Finish connecting Buzz" }),
+    page.getByRole("heading", { name: "Finish connecting HireShelby" }),
   ).toBeVisible();
 });
 
@@ -1248,7 +1248,7 @@ test("first-community direct join reaches profile", async ({ page }) => {
   await page.getByRole("button", { name: /Join a community/ }).click();
   await page
     .getByTestId("invite-redeem-input")
-    .fill("wss://onboarding.communities.buzz.xyz");
+    .fill("wss://onboarding.communities.hireshelby.com");
   await page.getByTestId("invite-redeem-submit").click();
 
   await expect(
@@ -1297,7 +1297,7 @@ test("community onboarding reuses an existing relay profile", async ({
           id: "txn-existing-profile",
           source: "add-community",
           stage: "profile",
-          relayUrl: "wss://onboarding.communities.buzz.xyz",
+          relayUrl: "wss://onboarding.communities.hireshelby.com",
           communityName: "Onboarding",
           communityId: "e2e-default-community",
           createdAt: timestamp,
@@ -1314,7 +1314,7 @@ test("community onboarding reuses an existing relay profile", async ({
     page,
     { profileHasEvent: true },
     {
-      relayWsUrl: "wss://onboarding.communities.buzz.xyz",
+      relayWsUrl: "wss://onboarding.communities.hireshelby.com",
       skipOnboardingSeed: true,
     },
   );
@@ -1364,7 +1364,7 @@ test("first-community direct join cancel returns to request access", async ({
   await page.getByRole("button", { name: /Join a community/ }).click();
   await page
     .getByTestId("invite-redeem-input")
-    .fill("wss://onboarding.communities.buzz.xyz");
+    .fill("wss://onboarding.communities.hireshelby.com");
   await page.getByTestId("invite-redeem-submit").click();
   await expect(page.getByText("Connecting securely…")).toBeVisible();
   await page.getByRole("button", { name: "Cancel" }).click();
@@ -1422,7 +1422,7 @@ test("canceling a join to an existing inactive community preserves it", async ({
     },
     {
       pubkey: BLANK_TYLER_IDENTITY.pubkey,
-      relayUrl: "wss://onboarding.communities.buzz.xyz",
+      relayUrl: "wss://onboarding.communities.hireshelby.com",
     },
   );
   await installMockBridge(
@@ -1444,7 +1444,7 @@ test("canceling a join to an existing inactive community preserves it", async ({
         id: "existing-community-join",
         source: "add-community",
         stage: "connecting",
-        relayUrl: "wss://onboarding.communities.buzz.xyz",
+        relayUrl: "wss://onboarding.communities.hireshelby.com",
         communityName: "Existing",
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -2744,7 +2744,7 @@ test("first-run onboarding posts the live Fizz kickoff", async ({ page }) => {
   // Greeted by the name typed above — the @mention pill also files the opener
   // into the new user's Inbox mentions feed.
   await expect(page.getByTestId("message-timeline")).toContainText(
-    "Hi @Morty QA, I'm Fizz. Welcome to Buzz.",
+    "Hi @Morty QA, I'm Fizz. Welcome to HireShelby.",
   );
   await expect(page.getByTestId("message-timeline")).toContainText(
     "Honey and Bumble, introduce yourselves",
@@ -2768,7 +2768,7 @@ test("first-run onboarding lands before Welcome team bootstrap completes", async
   await expectPrivateWelcomeLanding(page);
   await expect(page.getByTestId("app-loading-gate")).toHaveCount(0);
   await expect(page.getByTestId("message-timeline")).toContainText(
-    "Hi @Morty QA, I'm Fizz. Welcome to Buzz.",
+    "Hi @Morty QA, I'm Fizz. Welcome to HireShelby.",
   );
   await page.waitForTimeout(1_500);
   expect(await commandCount(page, "create_managed_agent")).toBe(3);
@@ -3391,7 +3391,9 @@ test("denied on relay A then paste relay B invite URL switches community to B", 
   await expect(page.getByText("I am 18 years of age or older.")).toBeVisible();
   await page.getByLabel("I am 18 years of age or older.").check();
   await page
-    .getByLabel("I agree to the Buzz Terms of Service and Privacy Policy.")
+    .getByLabel(
+      "I agree to the HireShelby Terms of Service and Privacy Policy.",
+    )
     .check();
   await page.getByTestId("invite-redeem-submit").click();
 

@@ -1,4 +1,4 @@
-# Buzz
+# HireShelby
 
 Desktop chat shell with:
 

@@ -700,7 +700,7 @@ mod pairing_relay_tests {
     #[test]
     fn configured_pairing_relay_resolves_to_configured_url() {
         let resolved = resolve_pairing_relay_url(
-            "wss://flint.communities.buzz.xyz",
+            "wss://flint.communities.hireshelby.com",
             PairingRelay::Configured("wss://pairing.buzz.xyz".to_string()),
         )
         .expect("resolve configured pairing relay");
@@ -711,12 +711,15 @@ mod pairing_relay_tests {
     #[test]
     fn legacy_pairing_relay_appends_pair_path() {
         let resolved = resolve_pairing_relay_url(
-            "wss://flint.communities.buzz.xyz/community",
+            "wss://flint.communities.hireshelby.com/community",
             PairingRelay::LegacyPath,
         )
         .expect("resolve legacy pairing relay");
 
-        assert_eq!(resolved, "wss://flint.communities.buzz.xyz/community/pair");
+        assert_eq!(
+            resolved,
+            "wss://flint.communities.hireshelby.com/community/pair"
+        );
     }
 
     #[test]

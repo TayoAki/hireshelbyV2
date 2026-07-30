@@ -732,7 +732,7 @@ pub struct Config {
     pub openai_api: OpenAiApi,
     /// Prefer mesh-llm's virtual `mesh` model when the configured/effective
     /// OpenAI model is `auto` and the live model catalog advertises it.
-    /// Set by Buzz's relay-mesh provider via
+    /// Set by HireShelby's relay-mesh provider via
     /// `BUZZ_AGENT_PREFER_MESH_FOR_AUTO=1`; other providers keep their
     /// existing `auto` semantics.
     pub prefer_mesh_for_auto: bool,

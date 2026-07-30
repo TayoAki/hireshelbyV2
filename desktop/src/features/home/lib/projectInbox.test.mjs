@@ -36,7 +36,7 @@ function feedItem(overrides = {}) {
 
 const project = {
   id: "buzz",
-  name: "Buzz",
+  name: "HireShelby",
   owner: OWNER,
   repoAddress: REPO_ADDRESS,
 };

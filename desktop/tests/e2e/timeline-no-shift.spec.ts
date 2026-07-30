@@ -328,7 +328,7 @@ test("timeline reserves mixed-media rows before fast scrollback", async ({
       channelName: "general",
       content: [
         "mixed-scroll link preview",
-        "https://github.com/block/sprout/pull/1334",
+        "https://github.com/hireshelby/hireshelby/pull/1334",
       ].join("\n"),
       createdAt: 1_700_600_103,
     });

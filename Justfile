@@ -1,4 +1,4 @@
-# Buzz — development task runner
+# HireShelby — development task runner
 
 set dotenv-load := true
 
@@ -64,8 +64,8 @@ hooks:
     git config --local core.hooksPath "$HOOKS_DIR"
     lefthook install --force
 
-# Wipe development state and recreate a clean environment. Installed Buzz is preserved.
-[confirm("This will DELETE all development data and preserve installed Buzz. Continue? (y/N)")]
+# Wipe development state and recreate a clean environment. Installed HireShelby is preserved.
+[confirm("This will DELETE all development data and preserve installed HireShelby. Continue? (y/N)")]
 reset:
     ./scripts/dev-reset.sh --yes
 
@@ -300,7 +300,7 @@ test-unit:
 test-integration:
     ./scripts/run-tests.sh integration
 
-# Buzz shared compute e2e: current desktop discovery/admission logic and
+# HireShelby shared compute e2e: current desktop discovery/admission logic and
 # Playwright UI coverage.
 mesh-e2e:
     cargo test --manifest-path {{desktop_dir}}/src-tauri/Cargo.toml --features mesh-llm mesh_llm --lib
@@ -309,7 +309,7 @@ mesh-e2e:
 # Reset only development state, seed deterministic local channels, and launch
 # the mesh-enabled desktop with the repository's public Tyler test identity.
 # This is for local verification only; never point this identity at staging/prod.
-[confirm("This will reset development data, preserve installed Buzz, then launch a seeded mesh dev app. Continue? (y/N)")]
+[confirm("This will reset development data, preserve installed HireShelby, then launch a seeded mesh dev app. Continue? (y/N)")]
 mesh-dev-fresh:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -332,7 +332,7 @@ mesh-e2e-hardware:
     cargo run -p buzz-relay --example mesh_serve_client_smoke
 
 # Three isolated node processes: trusted member joins and infers; stranger is rejected.
-# Uses temp homes and explicit mesh owner keystores. Never reads the Buzz Keychain.
+# Uses temp homes and explicit mesh owner keystores. Never reads the HireShelby Keychain.
 mesh-e2e-admission:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -517,7 +517,8 @@ staging *ARGS: bootstrap _ensure-sidecar-stubs
     cp "${TARGET_DIR}/release/buzz" "desktop/src-tauri/binaries/buzz-${TARGET}"
     chmod +x "desktop/src-tauri/binaries/buzz-${TARGET}"
     cd {{desktop_dir}}
-    export BUZZ_RELAY_URL="wss://sprout-oss.stage.blox.sqprod.co"
+    # Set BUZZ_STAGING_RELAY_URL to your own staging relay before using this recipe.
+    export BUZZ_RELAY_URL="${BUZZ_STAGING_RELAY_URL:?set BUZZ_STAGING_RELAY_URL to your staging relay, e.g. wss://staging.hireshelby.com}"
     source ../scripts/instance-env.sh
     # Ctrl+C kills the Tauri app before its in-process sweep finishes, leaking
     # agent workers. Reap this instance's agents on exit as a backstop.
@@ -544,7 +545,8 @@ production *ARGS: bootstrap _ensure-sidecar-stubs
     cp "${TARGET_DIR}/release/buzz" "desktop/src-tauri/binaries/buzz-${TARGET}"
     chmod +x "desktop/src-tauri/binaries/buzz-${TARGET}"
     cd {{desktop_dir}}
-    export BUZZ_RELAY_URL="wss://buzz.block.builderlab.xyz"
+    # Set BUZZ_PRODUCTION_RELAY_URL to your own production relay before using this recipe.
+    export BUZZ_RELAY_URL="${BUZZ_PRODUCTION_RELAY_URL:?set BUZZ_PRODUCTION_RELAY_URL to your production relay, e.g. wss://relay.hireshelby.com}"
     source ../scripts/instance-env.sh
     # Ctrl+C kills the Tauri app before its in-process sweep finishes, leaking
     # agent workers. Reap this instance's agents on exit as a backstop.
@@ -644,7 +646,7 @@ mobile-dev:
     unset GIT_DIR GIT_WORK_TREE
     flutter run
 
-# Uninstall stale worktree-suffixed Buzz debug installs (production apps kept)
+# Uninstall stale worktree-suffixed HireShelby debug installs (production apps kept)
 mobile-clean:
     ./scripts/mobile-worktree-clean.sh
 
@@ -770,7 +772,7 @@ _release-pr lane version:
             CHANGELOG="CHANGELOG.md"
             ADD_FILES=(desktop/package.json desktop/src-tauri/tauri.conf.json desktop/src-tauri/Cargo.toml desktop/src-tauri/Cargo.lock pnpm-lock.yaml CHANGELOG.md)
             LOG_PATHS=(desktop/ crates/buzz-core/ crates/buzz-persona/ crates/buzz-sdk/ crates/buzz-agent/)
-            ARTIFACT="Buzz Desktop" ;;
+            ARTIFACT="HireShelby Desktop" ;;
         relay)
             BRANCH_PREFIX="relay-release"
             TAG_FETCH='relay-v*'
@@ -780,7 +782,7 @@ _release-pr lane version:
             CHANGELOG="crates/buzz-relay/CHANGELOG.md"
             ADD_FILES=(crates/buzz-relay/Cargo.toml Cargo.lock crates/buzz-relay/CHANGELOG.md)
             LOG_PATHS=(crates/buzz-relay/ crates/buzz-core/ crates/buzz-db/ crates/buzz-auth/ crates/buzz-pubsub/ crates/buzz-search/ crates/buzz-audit/ crates/buzz-media/ crates/buzz-sdk/ crates/buzz-workflow/ crates/buzz-conformance/ migrations/)
-            ARTIFACT="Buzz Relay" ;;
+            ARTIFACT="HireShelby Relay" ;;
         *)
             echo "Error: unknown release lane '{{ lane }}'"
             exit 1 ;;
@@ -902,7 +904,7 @@ _release-pr lane version:
 
 # ─── Agent Harness ────────────────────────────────────────────────────────────
 
-# Run a goose agent connected to a Buzz relay (foreground)
+# Run a goose agent connected to a HireShelby relay (foreground)
 goose relay="ws://localhost:3000" agents="1" heartbeat="0" prompt="" key="$BUZZ_PRIVATE_KEY":
     #!/usr/bin/env bash
     set -euo pipefail
@@ -921,7 +923,7 @@ goose-bg relay="ws://localhost:3000" agents="1" heartbeat="0" prompt="" key="$BU
 
 # ─── Benchmarking ─────────────────────────────────────────────────────────────
 
-# Run the Buzz orchestra benchmark — leaderboard-eligible by default (TB 2.1, k=5, Sonnet+Haiku). Stands up its own Docker stack; --gui opens a live spectator desktop app; other flags pass to benchmark.py (--dataset/--path, --include-task, --attempts, --manifest, --dry-run, ...)
+# Run the HireShelby orchestra benchmark — leaderboard-eligible by default (TB 2.1, k=5, Sonnet+Haiku). Stands up its own Docker stack; --gui opens a live spectator desktop app; other flags pass to benchmark.py (--dataset/--path, --include-task, --attempts, --manifest, --dry-run, ...)
 benchmark *ARGS:
     #!/usr/bin/env bash
     set -euo pipefail

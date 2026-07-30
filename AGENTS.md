@@ -1,6 +1,6 @@
 # AGENTS.md — AI Agent Contributor Guide
 
-This guide is for AI agents contributing to the Buzz codebase. It covers
+This guide is for AI agents contributing to the HireShelby codebase. It covers
 agent-specific context and conventions. For general contributor info (setup,
 code style, PR process, architecture), see [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -8,23 +8,16 @@ code style, PR process, architecture), see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Ecosystem
 
-Buzz spans five repos. This one (`block/buzz`) is the OSS source for the relay, desktop, mobile, and CLI. The others handle internal builds and deployment:
+HireShelby lives in a single repo (`hireshelby/hireshelby`) containing the relay,
+desktop app, mobile app, CLI, and agent harness.
 
-| Repo | Purpose |
+| Component | Purpose |
 |------|---------|
-| [block/buzz](https://github.com/block/buzz) | OSS source — relay, desktop app, mobile app, CLI, agent harness |
-| [squareup/sprout-releases](https://github.com/squareup/sprout-releases) | Buildkite pipeline producing Block-signed macOS + iOS builds with `-block` version suffix |
-| [squareup/sprout-oss](https://github.com/squareup/sprout-oss) | CI pipeline building the relay Docker image and pushing to internal ECR |
-| [squareup/block-coder-tf-stacks](https://github.com/squareup/block-coder-tf-stacks) | Terraform + ArgoCD deploying the relay to the staging Kubernetes cluster |
-| [squareup/sprout-backend-blox](https://github.com/squareup/sprout-backend-blox) | Desktop backend provider script connecting Blox workstation agents to the relay |
-
-```
-block/buzz (source)
-  ├─► sprout-releases    (desktop + mobile builds → Artifactory, GitHub, Mobile Releases)
-  ├─► sprout-oss         (relay Docker image → ECR)
-  │     └─► block-coder-tf-stacks  (Helm chart → ArgoCD → staging cluster)
-  └─── sprout-backend-blox         (Blox compute provider for Desktop agent launch)
-```
+| `crates/` | Rust workspace — relay, CLI, agent harness, shared libraries |
+| `desktop/` | Tauri + React desktop client |
+| `web/` | Browser client and invite landing page |
+| `mobile/` | Flutter iOS + Android clients |
+| `deploy/` | Compose bundle and Helm chart for self-hosting |
 
 See [RELEASING.md](RELEASING.md) for the desktop release flow and
 [CONTRIBUTING.md § Ecosystem](CONTRIBUTING.md#ecosystem) for contributor
@@ -46,7 +39,7 @@ crates/
   buzz-audit          # Hash-chain audit log
   buzz-media          # Blossom/S3 media storage
   # Agent surface
-  buzz-acp            # ACP harness bridging Buzz events to AI agents
+  buzz-acp            # ACP harness bridging HireShelby events to AI agents
   buzz-agent          # Minimal ACP-compliant agent (non-streaming, tool-calls-as-output)
   buzz-dev-mcp        # Developer MCP server — shell + file-edit tools
   buzz-persona        # Agent persona packs
@@ -119,7 +112,7 @@ Additional rules:
 
 ## Key Patterns
 
-**Nostr-first HTTP surface**: Buzz's primary API is NIP-29 over WebSocket. The relay also exposes a narrow HTTP surface: NIP-11/NIP-05 metadata, `POST /events`, `POST /query`, `POST /count`, workflow webhooks at `/hooks/{id}`, Blossom media, git smart HTTP, git policy hooks, and health probes. These HTTP paths all preserve the same host-derived community boundary.
+**Nostr-first HTTP surface**: HireShelby's primary API is NIP-29 over WebSocket. The relay also exposes a narrow HTTP surface: NIP-11/NIP-05 metadata, `POST /events`, `POST /query`, `POST /count`, workflow webhooks at `/hooks/{id}`, Blossom media, git smart HTTP, git policy hooks, and health probes. These HTTP paths all preserve the same host-derived community boundary.
 
 **Prefer Nostr events over new HTTP endpoints**: For new feature work, model
 the operation as a Nostr event (new kind in `buzz-core/src/kind.rs`, handler
@@ -176,7 +169,7 @@ or invoke with the full path.
 
 ### Deep Links
 
-`buzz://message?channel=<uuid>&id=<hex>` links reference a specific message
+`hireshelby://message?channel=<uuid>&id=<hex>` links reference a specific message
 thread. To read the linked thread:
 
 ```bash
@@ -414,7 +407,7 @@ not post. This catches the most common screenshot regression.
 
 **PR comments:** Use a body template (3rd arg to `post-screenshots.sh`) with
 `{{filename}}` placeholders. Each screenshot gets a `###` heading + one-line
-description. See [PR #803](https://github.com/block/buzz/pull/803).
+description. See [PR #803](https://github.com/hireshelby/hireshelby/pull/803).
 
 ---
 

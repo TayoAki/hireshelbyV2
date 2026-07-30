@@ -1,4 +1,4 @@
-# Flux HelmRelease — GitOps-safe Buzz install.
+# Flux HelmRelease — GitOps-safe HireShelby install.
 #
 # Prerequisite: a Secret named `buzz-secrets` in namespace `buzz`. See
 # `secret-sample.yaml`. Flux renders the chart server-side via the

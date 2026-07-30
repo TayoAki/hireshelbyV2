@@ -302,7 +302,8 @@ export function MeshComputeSettingsCard() {
             />
             <p className="text-sm font-normal text-muted-foreground">
               Choose a suggested model below, or enter a model reference or
-              local file. Buzz downloads remote models when sharing starts.
+              local file. HireShelby downloads remote models when sharing
+              starts.
             </p>
             {catalog && catalog.entries.length > 0 ? (
               <CatalogPicker
@@ -481,7 +482,7 @@ function CatalogPicker({
   selected: string;
 }) {
   const [expanded, setExpanded] = React.useState(false);
-  // Above the fold: the Buzz-curated picks (models known to work well with
+  // Above the fold: the HireShelby-curated picks (models known to work well with
   // agents on shared compute). Below: everything else, as advanced options.
   const curated = catalog.entries.filter((e) => e.curated);
   const advanced = catalog.entries.filter((e) => !e.curated);
@@ -575,7 +576,8 @@ function StatusLine({
     return (
       <p className="text-sm text-muted-foreground">
         This machine is currently using another member's shared compute. Turn on
-        sharing to switch to the selected local model; Buzz may briefly restart.
+        sharing to switch to the selected local model; HireShelby may briefly
+        restart.
       </p>
     );
   }

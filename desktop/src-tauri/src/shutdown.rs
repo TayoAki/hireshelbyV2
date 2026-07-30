@@ -92,7 +92,7 @@ pub(crate) fn relaunch_after_mesh_shutdown(app: &tauri::AppHandle) -> ! {
 
 #[cfg(all(feature = "mesh-llm", target_os = "macos"))]
 pub(crate) fn hard_exit_after_mesh_shutdown() -> ! {
-    // SAFETY: all Buzz-managed subprocesses and the embedded Mesh runtime have
+    // SAFETY: all HireShelby-managed subprocesses and the embedded Mesh runtime have
     // been stopped. `_exit` intentionally skips only process-global C++
     // destructors and buffered stdio; no application state remains observable.
     unsafe { libc::_exit(0) }
@@ -252,7 +252,7 @@ pub(crate) fn shutdown_managed_agents(app: &tauri::AppHandle) -> Result<(), Stri
     // known agent binaries that are still running.
     managed_agents::sweep_system_agent_processes(&managed_agents::current_instance_id(app), &[]);
 
-    // Dead-instance reaping: find agents belonging to Buzz instances
+    // Dead-instance reaping: find agents belonging to HireShelby instances
     // whose desktop process is no longer running and reap them.
     managed_agents::reap_dead_instance_agents(&managed_agents::current_instance_id(app), &[]);
 

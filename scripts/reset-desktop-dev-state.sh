@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Remove desktop state owned by development bundle identifiers only.
-# Production state (`xyz.block.buzz.app`, `~/.buzz`, and `buzz-desktop`) is
+# Production state (`com.hireshelby.app`, `~/.buzz`, and `buzz-desktop`) is
 # deliberately outside every deletion pattern in this script.
 set -euo pipefail
 
@@ -21,7 +21,7 @@ remove_bundle_state() {
 
   [[ -d "$base" ]] || return 0
   shopt -s nullglob
-  for prefix in xyz.block.buzz.app.dev xyz.block.sprout.app.dev; do
+  for prefix in com.hireshelby.app.dev xyz.block.sprout.app.dev; do
     # Match the canonical dev identifier and dot-delimited worktree variants.
     # Do not use `${prefix}*`: that could match a non-dev prefix collision.
     remove_path "$base/${prefix}${suffix}"
@@ -66,4 +66,4 @@ remove_path "$HOME/.sprout-dev"
 mkdir -p "$HOME/.buzz-dev"
 : > "$HOME/.buzz-dev/.dev-nest-migrated"
 
-log "Development desktop state removed; production Buzz state was not touched"
+log "Development desktop state removed; production HireShelby state was not touched"

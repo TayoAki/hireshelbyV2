@@ -47,7 +47,7 @@
     --sidebar-accent-foreground: 234 16.02% 35.49%;
     --sidebar-border: 225 13.56% 76.86%;
     --sidebar-ring: 225 13.56% 76.86%;
-    /* Exact Buzz palette tokens; components consume these semantically. */
+    /* Exact HireShelby palette tokens; components consume these semantically. */
     --buzz-gradient-light-top: #e6e6b6;
     --buzz-gradient-light-bottom: #c4d0da;
     --buzz-gradient-dark-top: #4a4616;
@@ -181,12 +181,12 @@
 }
 
 /*
- * Buzz theme - sidebar gradient.
+ * HireShelby theme - sidebar gradient.
  *
- * Buzz reuses the GitHub Light palette for every base color; its one
+ * HireShelby reuses the GitHub Light palette for every base color; its one
  * distinguishing feature is this gradient painted across the sidebar/nav
  * canvas, replacing GitHub Light's flat grey. ThemeProvider toggles the
- * `data-buzz-sidebar` attribute on <html> when the Buzz theme is active.
+ * `data-buzz-sidebar` attribute on <html> when the HireShelby theme is active.
  *
  * These rules are intentionally UNLAYERED: the `bg-sidebar` background-color
  * lives in Tailwind's `utilities` layer, and unlayered declarations win over
@@ -224,8 +224,8 @@
 }
 
 /*
- * Dark variant (Buzz Dark). Reuses the GitHub Dark base palette; only the
- * Buzz color tokens change, so every downstream rule (gradient fill, hover,
+ * Dark variant (HireShelby Dark). Reuses the GitHub Dark base palette; only the
+ * HireShelby color tokens change, so every downstream rule (gradient fill, hover,
  * search box, muted labels, active pill) adapts automatically. The `.dark`
  * class is set on the document root whenever a dark theme is active.
  */
@@ -246,7 +246,7 @@
 }
 
 /*
- * Use the Buzz primary color for the floating selection-formatting tray.
+ * Use the HireShelby primary color for the floating selection-formatting tray.
  * Other themes retain the standard popover treatment.
  */
 :root[data-buzz-sidebar] [data-buzz-selection-formatting-tray] {
@@ -267,7 +267,7 @@
   color: hsl(var(--primary-foreground));
 }
 
-/* Keep the subtle content-card lift in Buzz Light only. */
+/* Keep the subtle content-card lift in HireShelby Light only. */
 :root[data-buzz-sidebar]:not(.dark) [data-buzz-content-surface] {
   box-shadow:
     -1px -1px 0 0 hsl(var(--sidebar-border) / 0.45),
@@ -280,7 +280,7 @@
 }
 
 /*
- * Buzz Dark uses a warmer neutral for the inset main/settings content canvas.
+ * HireShelby Dark uses a warmer neutral for the inset main/settings content canvas.
  * Override `--background` locally as well as the surface fill so descendant
  * headers and panes using `bg-background` remain visually continuous.
  */
@@ -296,7 +296,7 @@
 }
 
 /*
- * Keep both Buzz gradients painted and switch only which layer is visible.
+ * Keep both HireShelby gradients painted and switch only which layer is visible.
  * WKWebView can retain the old raster when `background-image` is replaced on
  * a translucent surface. The center content already follows `.dark`, so using
  * that same state for layer visibility keeps both surfaces in lockstep.
@@ -381,7 +381,7 @@
  * Active nav item. The accent system (`applyAccentColor` in ThemeProvider)
  * sets `--sidebar-active` to the theme foreground as an INLINE style on
  * :root, which renders the selected page as a solid black pill under GitHub
- * Light. For the Buzz theme we want a subtle theme-specific tint instead.
+ * Light. For the HireShelby theme we want a subtle theme-specific tint instead.
  * Override the two active tokens on the sidebar element itself; element-local
  * custom properties win over the inherited inline values from :root. Text
  * uses the theme foreground, and the derived
@@ -391,7 +391,7 @@
  * `text-sidebar-active-foreground` tokens are also consumed by non-sidebar
  * controls (avatar edit buttons in ProfileSettingsCard / AgentCreationPreview,
  * the selected persona row in PersonaCatalogDialog). A root-level override
- * turned those white (white-on-white under Buzz Dark); scoping keeps them on
+ * turned those white (white-on-white under HireShelby Dark); scoping keeps them on
  * the normal accent-driven active colors.
  */
 :root[data-buzz-sidebar] [data-testid="app-sidebar"],
@@ -412,7 +412,7 @@
 
 /*
  * Active nav pill: use a subtle 7% black tint in light mode and drop the drop
- * shadow so the selection sits flat on the gradient (Buzz-only; other themes
+ * shadow so the selection sits flat on the gradient (HireShelby-only; other themes
  * keep `shadow-xs`). Higher specificity than the active utilities and
  * unlayered, so it wins.
  */
@@ -447,7 +447,7 @@
  * Row actions such as the DM close button are siblings of the menu button.
  * Hovering them still activates the row's Tailwind `group-hover` treatment,
  * so cover the whole menu item to keep that sibling-hover path on the same
- * Buzz neutral surface instead of falling back to the legacy accent.
+ * HireShelby neutral surface instead of falling back to the legacy accent.
  */
 :root[data-buzz-sidebar]
   [data-testid="app-sidebar"]
@@ -523,7 +523,7 @@
  * section header): match the same translucent white fill (see
  * `--buzz-hover-surface`) on hover/focus instead of the grey
  * `bg-sidebar-border/35` fill. Unlayered + `[data-buzz-sidebar]` prefix beats
- * the Tailwind utility so it only applies under the Buzz theme.
+ * the Tailwind utility so it only applies under the HireShelby theme.
  */
 :root[data-buzz-sidebar]
   [data-testid="app-sidebar"]
@@ -535,7 +535,7 @@
 }
 
 /*
- * Per-row-type text colors (Buzz theme).
+ * Per-row-type text colors (HireShelby theme).
  *
  * By default the whole sidebar inherits a single `--sidebar-foreground`, so
  * channels, direct messages, and the Inbox/Agents nav rows all share one text
@@ -543,7 +543,7 @@
  * keeping the default value unchanged.
  *
  * Each var defaults to `inherit`, so with nothing set the sidebar looks
- * exactly as before. Scoped to the Buzz sidebar container so other themes are
+ * exactly as before. Scoped to the HireShelby sidebar container so other themes are
  * untouched.
  */
 /* Channels: rows live inside the `stream-list` / `starred-list` menus. */
@@ -591,9 +591,9 @@
 }
 
 /*
- * Translucency (Buzz theme).
+ * Translucency (HireShelby theme).
  *
- * ThemeProvider toggles `data-buzz-translucent` for Buzz themes. Keep the
+ * ThemeProvider toggles `data-buzz-translucent` for HireShelby themes. Keep the
  * frosted layer on the outer canvases only; nested sidebar/header/footer
  * surfaces pass through so the nav reads as one continuous pane.
  */
@@ -603,7 +603,7 @@
 }
 
 :root[data-buzz-translucent] .buzz-theme-gradient-layer-light {
-  /* Buzz color wash above a neutral frost wash. */
+  /* HireShelby color wash above a neutral frost wash. */
   background-image:
     linear-gradient(
       to bottom,

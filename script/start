@@ -2,9 +2,9 @@
 # CAKE entrypoint — bridge Istio abstract socket to file socket, then exec relay.
 #
 # Traffic flow:
-#   Client → Envoy → @istio-proxy.sock (abstract) → socat → /tmp/local.sock → Buzz
-#   K8s probes → 0.0.0.0:8080 → Buzz (direct, no Istio)
-#   Prometheus → 0.0.0.0:9102/metrics → Buzz
+#   Client → Envoy → @istio-proxy.sock (abstract) → socat → /tmp/local.sock → HireShelby
+#   K8s probes → 0.0.0.0:8080 → HireShelby (direct, no Istio)
+#   Prometheus → 0.0.0.0:9102/metrics → HireShelby
 set -eu
 
 SIDECAR_SOCKET="${SIDECAR_LISTENER_BIND:-@istio-proxy.sock}"

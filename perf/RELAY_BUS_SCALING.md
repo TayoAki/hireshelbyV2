@@ -1,4 +1,4 @@
-# Buzz relay bus scaling harness
+# HireShelby relay bus scaling harness
 
 This harness gives reproducible evidence for the rewrite's Redis fan-out scaling claim:
 

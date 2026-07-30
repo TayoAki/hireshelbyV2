@@ -359,7 +359,7 @@ impl Llm {
         .map_err(PostError::into_agent)
     }
 
-    /// OpenAI dispatch with Buzz's relay-mesh `auto` policy layered over the
+    /// OpenAI dispatch with HireShelby's relay-mesh `auto` policy layered over the
     /// normal endpoint selection. When enabled, a live virtual `mesh` model is
     /// preferred; if the mesh contracts between discovery and inference, retry
     /// the same request once through the router's ordinary `auto` model.
@@ -2057,8 +2057,8 @@ async fn openrouter_post(
         let resp = match http
             .post(url)
             .header("content-type", "application/json")
-            .header("HTTP-Referer", "https://github.com/block/buzz")
-            .header("X-OpenRouter-Title", "Buzz")
+            .header("HTTP-Referer", "https://github.com/hireshelby/hireshelby")
+            .header("X-OpenRouter-Title", "HireShelby")
             .bearer_auth(bearer)
             .body(body_bytes.clone())
             .send()
@@ -6340,11 +6340,11 @@ mod tests {
             .expect("one request captured")
             .to_lowercase();
         assert!(
-            header_str.contains("http-referer: https://github.com/block/buzz"),
+            header_str.contains("http-referer: https://github.com/hireshelby/hireshelby"),
             "got: {header_str}"
         );
         assert!(
-            header_str.contains("x-openrouter-title: buzz"),
+            header_str.contains("x-openrouter-title: hireshelby"),
             "got: {header_str}"
         );
     }

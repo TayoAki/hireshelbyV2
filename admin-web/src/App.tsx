@@ -94,7 +94,7 @@ function Reports() {
     <Page
       eyebrow="Moderation"
       title="Open reports"
-      description="Review reports across every Buzz community."
+      description="Review reports across every HireShelby community."
     >
       <StateView resource={resource}>
         {(reports) =>
@@ -237,7 +237,7 @@ function FeedbackList() {
     <Page
       eyebrow="Product"
       title="Feedback"
-      description="Recent product feedback from across Buzz."
+      description="Recent product feedback from across HireShelby."
     >
       <StateView resource={resource}>
         {(items) => {
@@ -818,7 +818,7 @@ export function App() {
             <BuzzMark />
           </span>
           <span>
-            Buzz <b>Admin</b>
+            HireShelby <b>Admin</b>
           </span>
         </Link>
         <nav>

@@ -8,7 +8,7 @@ void main() {
   group('parseMessageDeepLink', () {
     test('parses channel and id', () {
       final link = parseMessageDeepLink(
-        Uri.parse('buzz://message?channel=d14cd131&id=abc123'),
+        Uri.parse('hireshelby://message?channel=d14cd131&id=abc123'),
       );
       expect(
         link,
@@ -18,33 +18,33 @@ void main() {
 
     test('parses optional thread param', () {
       final link = parseMessageDeepLink(
-        Uri.parse('buzz://message?channel=d14cd131&id=abc123&thread=root99'),
+        Uri.parse('hireshelby://message?channel=d14cd131&id=abc123&thread=root99'),
       );
       expect(link?.threadRootId, 'root99');
     });
 
     test('treats empty thread as absent', () {
       final link = parseMessageDeepLink(
-        Uri.parse('buzz://message?channel=d14cd131&id=abc123&thread='),
+        Uri.parse('hireshelby://message?channel=d14cd131&id=abc123&thread='),
       );
       expect(link, isNotNull);
       expect(link?.threadRootId, isNull);
     });
 
     test('rejects missing channel', () {
-      expect(parseMessageDeepLink(Uri.parse('buzz://message?id=abc')), isNull);
+      expect(parseMessageDeepLink(Uri.parse('hireshelby://message?id=abc')), isNull);
     });
 
     test('rejects empty channel', () {
       expect(
-        parseMessageDeepLink(Uri.parse('buzz://message?channel=&id=abc')),
+        parseMessageDeepLink(Uri.parse('hireshelby://message?channel=&id=abc')),
         isNull,
       );
     });
 
     test('rejects missing id', () {
       expect(
-        parseMessageDeepLink(Uri.parse('buzz://message?channel=d14cd131')),
+        parseMessageDeepLink(Uri.parse('hireshelby://message?channel=d14cd131')),
         isNull,
       );
     });
@@ -58,7 +58,7 @@ void main() {
 
     test('rejects non-message host (connect is desktop-only)', () {
       expect(
-        parseMessageDeepLink(Uri.parse('buzz://connect?relay=wss://x')),
+        parseMessageDeepLink(Uri.parse('hireshelby://connect?relay=wss://x')),
         isNull,
       );
     });
@@ -93,7 +93,7 @@ void _inviteTests() {
     test('parses buzz join handoff link', () {
       final link = parseInviteDeepLink(
         Uri.parse(
-          'buzz://join?relay=wss%3A%2F%2Frelay.example.com&code=abc123',
+          'hireshelby://join?relay=wss%3A%2F%2Frelay.example.com&code=abc123',
         ),
       );
       expect(
@@ -108,7 +108,7 @@ void _inviteTests() {
     test('normalizes trailing slash in buzz join handoff', () {
       final link = parseInviteDeepLink(
         Uri.parse(
-          'buzz://join?relay=wss%3A%2F%2Frelay.example.com%2F&code=abc123',
+          'hireshelby://join?relay=wss%3A%2F%2Frelay.example.com%2F&code=abc123',
         ),
       );
       expect(link?.relayUrl, 'wss://relay.example.com');
@@ -117,7 +117,7 @@ void _inviteTests() {
     test('rejects plaintext public buzz join handoff', () {
       final relay = Uri.encodeQueryComponent('ws://relay.example.com');
       expect(
-        parseInviteDeepLink(Uri.parse('buzz://join?relay=$relay&code=abc')),
+        parseInviteDeepLink(Uri.parse('hireshelby://join?relay=$relay&code=abc')),
         isNull,
       );
     });
@@ -125,7 +125,7 @@ void _inviteTests() {
     test('preserves policy receipt in buzz join handoff', () {
       final link = parseInviteDeepLink(
         Uri.parse(
-          'buzz://join?relay=wss%3A%2F%2Frelay.example.com&code=abc123&policy_receipt=receipt.value',
+          'hireshelby://join?relay=wss%3A%2F%2Frelay.example.com&code=abc123&policy_receipt=receipt.value',
         ),
       );
       expect(
@@ -169,7 +169,7 @@ void _inviteTests() {
       expect(
         parseInviteDeepLink(
           Uri.parse(
-            'buzz://join?relay=wss%3A%2F%2Fuser%3Apass%40relay.example.com&code=abc',
+            'hireshelby://join?relay=wss%3A%2F%2Fuser%3Apass%40relay.example.com&code=abc',
           ),
         ),
         isNull,
@@ -179,18 +179,18 @@ void _inviteTests() {
     test('rejects buzz join without websocket relay or code', () {
       expect(
         parseInviteDeepLink(
-          Uri.parse('buzz://join?relay=https://relay.example.com&code=abc'),
+          Uri.parse('hireshelby://join?relay=https://relay.example.com&code=abc'),
         ),
         isNull,
       );
       expect(
         parseInviteDeepLink(
-          Uri.parse('buzz://join?relay=wss://relay.example.com'),
+          Uri.parse('hireshelby://join?relay=wss://relay.example.com'),
         ),
         isNull,
       );
       expect(
-        parseInviteDeepLink(Uri.parse('buzz://connect?relay=wss://x')),
+        parseInviteDeepLink(Uri.parse('hireshelby://connect?relay=wss://x')),
         isNull,
       );
     });
@@ -224,7 +224,7 @@ void _inviteTests() {
       ]) {
         final encoded = Uri.encodeQueryComponent(hostile);
         expect(
-          parseInviteDeepLink(Uri.parse('buzz://join?relay=$encoded&code=abc')),
+          parseInviteDeepLink(Uri.parse('hireshelby://join?relay=$encoded&code=abc')),
           isNull,
           reason: 'must reject relay scheme in $hostile',
         );
@@ -238,7 +238,7 @@ void _buildMessageLinkTests() {
     test('builds channel + id link', () {
       expect(
         buildMessageLink(channelId: 'd14cd131', messageId: 'abc123'),
-        'buzz://message?channel=d14cd131&id=abc123',
+        'hireshelby://message?channel=d14cd131&id=abc123',
       );
     });
 
@@ -249,7 +249,7 @@ void _buildMessageLinkTests() {
           messageId: 'abc123',
           threadRootId: 'root99',
         ),
-        'buzz://message?channel=d14cd131&id=abc123&thread=root99',
+        'hireshelby://message?channel=d14cd131&id=abc123&thread=root99',
       );
     });
 
@@ -260,7 +260,7 @@ void _buildMessageLinkTests() {
           messageId: 'abc123',
           threadRootId: '',
         ),
-        'buzz://message?channel=d14cd131&id=abc123',
+        'hireshelby://message?channel=d14cd131&id=abc123',
       );
     });
 

@@ -1,7 +1,7 @@
 -- Benchmark schema for harbor-buzz-orchestra runs.
 --
 -- Lives in the shared Postgres instance but is OWNED BY THE HARNESS, never by
--- Buzz migrations (canonical plan §two-domain rule). Idempotent: safe to apply
+-- HireShelby migrations (canonical plan §two-domain rule). Idempotent: safe to apply
 -- on every testbed bring-up.
 --
 --   docker exec -i <postgres> psql -U buzz -d buzz < sql/benchmark_schema.sql

@@ -8,11 +8,11 @@
  * For video, the proxy streams via axum — no buffering the entire file.
  * Images and other media also benefit from this path.
  *
- * Only URLs hosted on the Buzz relay are rewritten. External Blossom URLs
+ * Only URLs hosted on the HireShelby relay are rewritten. External Blossom URLs
  * (e.g. nostr.build, void.cat) are returned unchanged — they aren't behind
  * Cloudflare Access and can be loaded directly by WKWebView. Without this
  * origin check, external Blossom URLs would be proxied to the wrong server
- * (the Buzz relay), resulting in 404s.
+ * (the HireShelby relay), resulting in 404s.
  */
 
 import { invoke } from "@tauri-apps/api/core";
@@ -290,7 +290,7 @@ export function mediaProxyUrl(port: number, mediaPath: string): string {
 }
 
 /**
- * If `url` is a Blossom media URL hosted on the Buzz relay, rewrite it
+ * If `url` is a Blossom media URL hosted on the HireShelby relay, rewrite it
  * to go through the local streaming proxy. External Blossom URLs and
  * non-Blossom URLs are returned unchanged.
  *
@@ -306,7 +306,7 @@ export function rewriteRelayUrl(url: string): string {
   // as a safe default (relay URLs need the proxy to avoid Cloudflare 403s).
   // Compare canonicalized origins: hosts are case-insensitive, and the relay
   // always returns lowercased media URLs even when the saved community URL
-  // was typed with uppercase (e.g. wss://PENDING-SEED.communities.buzz.xyz).
+  // was typed with uppercase (e.g. wss://PENDING-SEED.communities.hireshelby.com).
   if (cachedRelayOrigin) {
     const urlOrigin = canonicalOrigin(url);
     if (urlOrigin !== cachedRelayOrigin) {
