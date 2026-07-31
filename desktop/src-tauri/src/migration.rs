@@ -22,8 +22,6 @@ use tauri::Manager;
 use crate::util::replace_with_symlink;
 
 const CANONICAL_DEV_IDENTIFIER: &str = "com.hireshelby.app.dev";
-const LEGACY_CANONICAL_DEV_IDENTIFIER: &str = "xyz.block.sprout.app.dev";
-const LEGACY_RELEASE_IDENTIFIER: &str = "xyz.block.sprout.app";
 
 /// JSON files symlinked from worktree data directories to the canonical
 /// dev data directory. Only data files — never `agent-pids/` or `logs/`.
@@ -56,16 +54,17 @@ fn canonical_dev_data_dir(current: &Path) -> Option<PathBuf> {
     current.parent().map(|p| p.join(CANONICAL_DEV_IDENTIFIER))
 }
 
-pub(crate) fn legacy_app_data_dir(current: &Path) -> Option<PathBuf> {
-    let name = current.file_name()?.to_str()?;
-    let legacy_name = if name.starts_with(CANONICAL_DEV_IDENTIFIER) {
-        name.replacen(CANONICAL_DEV_IDENTIFIER, LEGACY_CANONICAL_DEV_IDENTIFIER, 1)
-    } else if name.starts_with("com.hireshelby.app") {
-        name.replacen("com.hireshelby.app", LEGACY_RELEASE_IDENTIFIER, 1)
-    } else {
-        return None;
-    };
-    current.parent().map(|parent| parent.join(legacy_name))
+/// Locates a predecessor application's Tauri app-data directory, so its
+/// contents can be migrated into the current one on first boot.
+///
+/// HireShelby has no predecessor application, so this always returns `None`
+/// and boot migration is a no-op. It deliberately does not map onto the
+/// upstream `xyz.block.sprout.app` / `xyz.block.buzz.app` directories: those
+/// belong to a different vendor's applications, and copying their identity
+/// keys and agent data into HireShelby would be wrong. Restore a mapping here
+/// only if a genuine HireShelby predecessor ships.
+pub(crate) fn legacy_app_data_dir(_current: &Path) -> Option<PathBuf> {
+    None
 }
 
 fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {

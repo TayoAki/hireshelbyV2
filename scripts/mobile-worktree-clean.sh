@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Uninstalls stale worktree-suffixed HireShelby debug builds from booted iOS
 # simulators and connected Android devices/emulators. Production installs
-# (com.buzz.buzzMobile / xyz.block.buzz.mobile, no suffix) are never touched:
+# (com.hireshelby.mobile / com.hireshelby.mobile, no suffix) are never touched:
 # only identifiers with a worktree suffix appended after the production id
 # are matched. Run `just mobile-clean` (or this script directly); pass
 # --dry-run to list what would be removed without uninstalling.
 set -euo pipefail
 
-ios_prefix="com.buzz.buzzMobile."
-android_prefix="xyz.block.buzz.mobile."
+ios_prefix="com.hireshelby.mobile."
+android_prefix="com.hireshelby.mobile."
 
 dry_run=0
 if [[ "${1:-}" == "--dry-run" ]]; then

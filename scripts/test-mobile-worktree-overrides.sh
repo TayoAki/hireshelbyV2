@@ -141,7 +141,7 @@ grep -q 'WorktreeOverrides' "$release_xcconfig" \
   || pass "Release.xcconfig does not include WorktreeOverrides"
 grep -q '^BUNDLE_IDENTIFIER = com\.buzz\.buzzMobile$' "$release_xcconfig" \
   && pass "Release.xcconfig keeps the production bundle identifier" \
-  || fail "Release.xcconfig must keep BUNDLE_IDENTIFIER = com.buzz.buzzMobile"
+  || fail "Release.xcconfig must keep BUNDLE_IDENTIFIER = com.hireshelby.mobile"
 grep -q '^APP_DISPLAY_NAME = HireShelby$' "$release_xcconfig" \
   && pass "Release.xcconfig keeps the production display name" \
   || fail "Release.xcconfig must keep APP_DISPLAY_NAME = HireShelby"
@@ -208,9 +208,9 @@ case "$1 $2" in
 esac
 if [[ "$1" == "devices" ]]; then exit 0; fi
 if [[ "$3 $4 $5" == "shell pm list" ]]; then
-  printf 'package:xyz.block.buzz.mobile\n'
-  printf 'package:xyz.block.buzz.mobile.feature_work_1\n'
-  printf 'package:xyz.block.buzz.mobile.w_2fast\n'
+  printf 'package:com.hireshelby.mobile\n'
+  printf 'package:com.hireshelby.mobile.feature_work_1\n'
+  printf 'package:com.hireshelby.mobile.w_2fast\n'
   printf 'package:com.android.settings\n'
   exit 0
 fi

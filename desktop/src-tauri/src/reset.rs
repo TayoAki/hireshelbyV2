@@ -181,7 +181,7 @@ pub(crate) fn run_boot_reset_with_keychain(ctx: ResetContext<'_>) -> ResetOutcom
         }
     }
 
-    // ── Step 1b: rename legacy App Support dir (sprout import source) ────────
+    // ── Step 1b: rename legacy App Support dir (predecessor import source) ────────
     let trash_legacy: Option<PathBuf> = ctx.legacy_app_data_dir.as_ref().map(|l| trash_path(l));
     if let Some(ref legacy) = ctx.legacy_app_data_dir {
         if legacy.exists() {
@@ -433,11 +433,11 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         let app_data = make_app_data(&tmp);
 
-        // Also create a legacy App Support dir (sprout import source).
+        // Also create a legacy App Support dir (predecessor import source).
         let legacy_dir = tmp
             .path()
             .join("Application Support")
-            .join("xyz.block.sprout.app");
+            .join("com.hireshelby.legacy.app");
         std::fs::create_dir_all(&legacy_dir).unwrap();
         std::fs::write(legacy_dir.join("identity.key"), b"old-identity").unwrap();
 
@@ -620,7 +620,7 @@ mod tests {
         let legacy_dir = tmp
             .path()
             .join("Application Support")
-            .join("xyz.block.sprout.app");
+            .join("com.hireshelby.legacy.app");
         std::fs::create_dir_all(legacy_dir.join("agents")).unwrap();
         std::fs::write(legacy_dir.join("identity.key"), b"sprout-nsec").unwrap();
 
@@ -795,7 +795,7 @@ mod tests {
         std::fs::create_dir_all(&app_data).unwrap();
         std::fs::write(app_data.join("config.json"), b"{}").unwrap();
 
-        let legacy = app_support.join("xyz.block.sprout.app");
+        let legacy = app_support.join("com.hireshelby.legacy.app");
         std::fs::create_dir_all(&legacy).unwrap();
         std::fs::write(legacy.join("identity.key"), b"sprout-key").unwrap();
 
@@ -840,7 +840,7 @@ mod tests {
         assert!(!legacy.exists(), "legacy must be gone");
         // No trash directories should remain.
         let trash_app = app_support.join("com.hireshelby.app.reset-trash");
-        let trash_legacy = app_support.join("xyz.block.sprout.app.reset-trash");
+        let trash_legacy = app_support.join("com.hireshelby.legacy.app.reset-trash");
         assert!(!trash_app.exists(), "app trash must be cleaned");
         assert!(!trash_legacy.exists(), "legacy trash must be cleaned");
     }

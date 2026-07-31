@@ -64,13 +64,10 @@ if git rev-parse --is-inside-work-tree &>/dev/null; then
 
             KEYRING_IDENTITY="$(printf '%s' "$KEYRING_BLOB" | python3 -c 'import json, sys; value = json.load(sys.stdin).get("identity", ""); print(value if isinstance(value, str) else "")' 2>/dev/null || true)"
             CANONICAL_KEY="$HOME/Library/Application Support/com.hireshelby.app.dev/identity.key"
-            LEGACY_CANONICAL_KEY="$HOME/Library/Application Support/xyz.block.sprout.app.dev/identity.key"
 
             SHARED_IDENTITY="$KEYRING_IDENTITY"
             if [[ -z "$SHARED_IDENTITY" && -f "$CANONICAL_KEY" ]]; then
                 SHARED_IDENTITY="$(cat "$CANONICAL_KEY")"
-            elif [[ -z "$SHARED_IDENTITY" && -f "$LEGACY_CANONICAL_KEY" ]]; then
-                SHARED_IDENTITY="$(cat "$LEGACY_CANONICAL_KEY")"
             fi
 
             if [[ -n "$SHARED_IDENTITY" ]]; then

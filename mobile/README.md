@@ -23,7 +23,7 @@ cd mobile && flutter run
 
 Debug builds produced from a git worktree get a unique app identifier keyed
 to the **worktree directory name** (`com.buzz.buzzMobile.<slug>` on iOS,
-`xyz.block.buzz.mobile.<slug>` on Android) plus a display-only branch label
+`com.hireshelby.mobile.<slug>` on Android) plus a display-only branch label
 in the app name (`HireShelby (my-branch)`, or a short SHA when the worktree is
 detached). Because the identifier follows the directory rather than the
 branch, one worktree keeps exactly one installed app — and its login state —

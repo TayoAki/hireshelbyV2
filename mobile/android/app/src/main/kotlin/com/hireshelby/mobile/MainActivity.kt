@@ -1,4 +1,4 @@
-package xyz.block.buzz.mobile
+package com.hireshelby.mobile
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory

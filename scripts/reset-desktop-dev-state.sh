@@ -21,7 +21,7 @@ remove_bundle_state() {
 
   [[ -d "$base" ]] || return 0
   shopt -s nullglob
-  for prefix in com.hireshelby.app.dev xyz.block.sprout.app.dev; do
+  for prefix in com.hireshelby.app.dev; do
     # Match the canonical dev identifier and dot-delimited worktree variants.
     # Do not use `${prefix}*`: that could match a non-dev prefix collision.
     remove_path "$base/${prefix}${suffix}"

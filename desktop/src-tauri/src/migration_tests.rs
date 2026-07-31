@@ -19,24 +19,33 @@ fn canonical_dev_data_dir_returns_none_for_root() {
 }
 
 #[test]
-fn legacy_app_data_dir_maps_release_identifier() {
+fn legacy_app_data_dir_has_no_predecessor() {
     let current = PathBuf::from("/Users/me/Library/Application Support/com.hireshelby.app");
-    let legacy = legacy_app_data_dir(&current).unwrap();
-    assert_eq!(
-        legacy,
-        PathBuf::from("/Users/me/Library/Application Support/xyz.block.sprout.app")
-    );
+    assert_eq!(legacy_app_data_dir(&current), None);
 }
 
 #[test]
-fn legacy_app_data_dir_maps_dev_worktree_identifier() {
+fn legacy_app_data_dir_has_no_predecessor_for_dev_worktree() {
     let current =
         PathBuf::from("/Users/me/Library/Application Support/com.hireshelby.app.dev.my-branch");
-    let legacy = legacy_app_data_dir(&current).unwrap();
-    assert_eq!(
-        legacy,
-        PathBuf::from("/Users/me/Library/Application Support/xyz.block.sprout.app.dev.my-branch",)
-    );
+    assert_eq!(legacy_app_data_dir(&current), None);
+}
+
+#[test]
+fn legacy_app_data_dir_never_maps_to_upstream_vendor_dirs() {
+    for name in [
+        "com.hireshelby.app",
+        "com.hireshelby.app.dev",
+        "xyz.block.buzz.app",
+        "xyz.block.sprout.app",
+    ] {
+        let current = PathBuf::from("/Users/me/Library/Application Support").join(name);
+        assert_eq!(
+            legacy_app_data_dir(&current),
+            None,
+            "must not resolve another vendor's app data for {name}"
+        );
+    }
 }
 
 #[test]
