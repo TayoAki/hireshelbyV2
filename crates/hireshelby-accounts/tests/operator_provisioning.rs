@@ -22,6 +22,7 @@ use std::path::Path;
 /// The crate is a binary, so pull the module in directly rather than via a
 /// library target that only exists for tests.
 #[path = "../src/operator.rs"]
+#[allow(dead_code)] // the test uses only the provisioning half of the client
 mod operator;
 
 use operator::{OperatorClient, ProvisionRequest};

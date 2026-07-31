@@ -343,11 +343,79 @@ pub struct ExchangeResponse {
     pub expires_at: String,
 }
 
+/// Resolves a WorkOS authorization code to a local account.
+///
+/// AuthKit redirects to the desktop's loopback with a *WorkOS* code, which the
+/// desktop forwards to us verbatim. `user_management/authenticate` proves the
+/// code with our client secret and returns the profile; we upsert the account
+/// keyed on email (see [`upsert_account`]) and record `workos:<id>` as the
+/// provider identity.
+async fn exchange_workos_code(state: &AppState, code: &str) -> Result<Uuid, AuthError> {
+    let (Some(client_id), Some(client_secret)) = (
+        state.config.workos_client_id.as_ref(),
+        state.config.workos_client_secret.as_ref(),
+    ) else {
+        return Err(AuthError::InvalidCode);
+    };
+
+    let response = state
+        .http
+        .post("https://api.workos.com/user_management/authenticate")
+        .json(&serde_json::json!({
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "grant_type": "authorization_code",
+            "code": code,
+        }))
+        .send()
+        .await
+        .map_err(|error| {
+            tracing::error!(%error, "auth: WorkOS authenticate transport failure");
+            AuthError::InvalidCode
+        })?;
+    if !response.status().is_success() {
+        // 4xx here means an invalid/expired/foreign code — the same class of
+        // failure as a bad local code, so the caller sees one error shape.
+        tracing::warn!(status = %response.status(), "auth: WorkOS rejected the code");
+        return Err(AuthError::InvalidCode);
+    }
+
+    #[derive(serde::Deserialize)]
+    struct WorkOsUser {
+        id: String,
+        email: String,
+        first_name: Option<String>,
+        last_name: Option<String>,
+    }
+    #[derive(serde::Deserialize)]
+    struct WorkOsAuth {
+        user: WorkOsUser,
+    }
+    let auth: WorkOsAuth = response.json().await.map_err(|error| {
+        tracing::error!(%error, "auth: WorkOS returned an unexpected shape");
+        AuthError::InvalidCode
+    })?;
+
+    let name = match (auth.user.first_name, auth.user.last_name) {
+        (Some(f), Some(l)) => Some(format!("{f} {l}")),
+        (Some(one), None) | (None, Some(one)) => Some(one),
+        (None, None) => None,
+    };
+    upsert_account(
+        state,
+        &auth.user.email.to_lowercase(),
+        name.as_deref(),
+        &format!("workos:{}", auth.user.id),
+    )
+    .await
+}
+
 /// Trades a login code for a session.
 ///
-/// The code is consumed with a conditional UPDATE returning the account, so two
-/// concurrent exchanges of the same code cannot both succeed — the second sees
-/// zero rows. Doing this as SELECT-then-UPDATE would be a race.
+/// Local codes are consumed with a conditional UPDATE returning the account,
+/// so two concurrent exchanges of the same code cannot both succeed — the
+/// second sees zero rows. A code that is not ours is then tried against
+/// WorkOS, which lets the desktop stay ignorant of which provider issued it.
 pub async fn exchange(
     State(state): State<Arc<AppState>>,
     Json(req): Json<ExchangeRequest>,
@@ -365,7 +433,10 @@ pub async fn exchange(
     .bind(hash_secret(code))
     .fetch_optional(&state.db)
     .await?;
-    let (account_id,) = row.ok_or(AuthError::InvalidCode)?;
+    let account_id = match row {
+        Some((id,)) => id,
+        None => exchange_workos_code(&state, code).await?,
+    };
 
     let credential = generate_secret();
     let expires_at = Utc::now() + Duration::days(SESSION_TTL_DAYS);

@@ -59,6 +59,13 @@ pub struct Config {
     /// WorkOS AuthKit client id. When unset, hosted auth is not configured and
     /// login falls back to developer mode (if enabled).
     pub workos_client_id: Option<String>,
+    /// WorkOS API secret for the authenticate-with-code exchange. Required for
+    /// hosted login to complete; never logged.
+    pub workos_client_secret: Option<String>,
+    /// Stripe webhook signing secret (`whsec_...`). When unset the webhook
+    /// endpoint answers 404 so a deployment without billing does not expose an
+    /// unauthenticated POST surface.
+    pub stripe_webhook_secret: Option<String>,
     /// Enables the local developer sign-in form, which issues a session for any
     /// email without proving ownership. A complete authentication bypass, so it
     /// defaults to off and must be opted into explicitly.
@@ -77,6 +84,14 @@ impl fmt::Debug for Config {
             .field("operator_secret_key", &"<redacted>")
             .field("community_domain", &self.community_domain)
             .field("workos_configured", &self.workos_client_id.is_some())
+            .field(
+                "workos_secret_configured",
+                &self.workos_client_secret.is_some(),
+            )
+            .field(
+                "stripe_webhook_configured",
+                &self.stripe_webhook_secret.is_some(),
+            )
             // Surfaced on purpose: an operator must be able to see from the
             // startup log that the auth bypass is not on in production.
             .field("dev_login_enabled", &self.dev_login_enabled)
@@ -126,6 +141,14 @@ impl Config {
                 .ok()
                 .map(|v| v.trim().to_string())
                 .filter(|v| !v.is_empty()),
+            workos_client_secret: std::env::var("HIRESHELBY_WORKOS_CLIENT_SECRET")
+                .ok()
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
+            stripe_webhook_secret: std::env::var("HIRESHELBY_STRIPE_WEBHOOK_SECRET")
+                .ok()
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
             dev_login_enabled: std::env::var("HIRESHELBY_DEV_LOGIN")
                 .map(|v| v == "true" || v == "1")
                 .unwrap_or(false),
@@ -171,6 +194,8 @@ mod tests {
             operator_secret_key: test_keys(),
             community_domain: "communities.hireshelby.com".into(),
             workos_client_id: None,
+            workos_client_secret: None,
+            stripe_webhook_secret: None,
             dev_login_enabled: false,
         }
     }

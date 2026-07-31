@@ -10,8 +10,10 @@
 
 mod api;
 mod auth;
+mod billing;
 mod config;
 mod db;
+mod identities;
 mod operator;
 mod plan;
 
@@ -30,6 +32,8 @@ pub struct AppState {
     pub config: Config,
     pub operator: OperatorClient,
     pub db: sqlx::PgPool,
+    /// Shared client for outbound calls (WorkOS authenticate).
+    pub http: reqwest::Client,
 }
 
 #[derive(serde::Serialize)]
@@ -72,8 +76,28 @@ fn router(state: Arc<AppState>) -> Router {
         .route("/v1/auth/login/exchange", post(auth::exchange))
         .route("/v1/auth/me", get(auth::me))
         .route("/v1/auth/logout", post(auth::logout))
+        .route("/v1/billing/webhook", post(billing::webhook))
         .route("/v1/communities", post(api::create_community))
-        .route("/v1/communities/list", get(api::list_communities))
+        // The desktop calls list as POST with an empty body; GET kept for curl.
+        .route(
+            "/v1/communities/list",
+            get(api::list_communities).post(api::list_communities),
+        )
+        .route("/v1/communities/availability", post(api::availability))
+        .route("/v1/communities/archive", post(api::archive))
+        .route("/v1/communities/unarchive", post(api::unarchive))
+        .route("/v1/communities/transfer", post(api::transfer))
+        .route(
+            "/v1/nostr-identities/challenge",
+            post(identities::challenge),
+        )
+        .route("/v1/nostr-identities/verify", post(identities::verify))
+        // current is called as POST by the desktop; GET kept for curl.
+        .route(
+            "/v1/nostr-identities/current",
+            get(identities::current).post(identities::current),
+        )
+        .route("/v1/nostr-identities/delete", post(identities::delete))
         .route(
             "/v1/communities/{community_id}/seats/check",
             post(api::check_seats),
@@ -116,6 +140,7 @@ async fn main() -> anyhow::Result<()> {
         config,
         operator,
         db,
+        http: reqwest::Client::new(),
     });
 
     let listener = tokio::net::TcpListener::bind(&bind_addr).await?;

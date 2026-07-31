@@ -5,6 +5,7 @@
 //! provisioning bug (deny), while a failed query is an outage (fail soft — see
 //! [`crate::plan::QuotaDecision`]).
 
+use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -18,9 +19,20 @@ pub enum DbError {
     UnknownTier(String),
 }
 
-/// Loads the billing plan for a community.
-///
-/// `Ok(None)` means the community has no plan row at all.
+/// One community as the API renders it. Kept as a named struct (not a tuple)
+/// because five of its fields are strings and positional confusion between
+/// `slug`, `host`, and `owner_pubkey` would type-check fine and ship broken.
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct CommunityRow {
+    pub id: Uuid,
+    pub slug: String,
+    pub host: String,
+    pub owner_pubkey: Option<String>,
+    pub relay_community_id: Option<String>,
+    pub archived_at: Option<DateTime<Utc>>,
+}
+
+/// Loads the billing plan for a community. `Ok(None)` = no plan row.
 pub async fn load_plan(pool: &PgPool, community_id: Uuid) -> Result<Option<Plan>, DbError> {
     let row: Option<(String, i32, Option<i32>, i32, bool)> = sqlx::query_as(
         "SELECT tier, seats_purchased, agent_hours_override, agent_hours_used, overage_enabled \
@@ -44,7 +56,7 @@ pub async fn load_plan(pool: &PgPool, community_id: Uuid) -> Result<Option<Plan>
     }))
 }
 
-/// Number of communities an account currently owns, excluding archived ones.
+/// Number of non-archived communities an account owns.
 pub async fn active_community_count(pool: &PgPool, account_id: Uuid) -> Result<i64, DbError> {
     let (count,): (i64,) = sqlx::query_as(
         "SELECT count(*) FROM communities WHERE account_id = $1 AND archived_at IS NULL",
@@ -55,32 +67,69 @@ pub async fn active_community_count(pool: &PgPool, account_id: Uuid) -> Result<i
     Ok(count)
 }
 
-/// Records a community this control plane provisioned on the relay.
+/// Does any community (archived or not) already claim this host?
+///
+/// Archived communities keep their host reserved: releasing it would let a
+/// stranger squat a workspace address a paying customer may unarchive.
+pub async fn host_exists(pool: &PgPool, host: &str) -> Result<bool, DbError> {
+    let (exists,): (bool,) =
+        sqlx::query_as("SELECT EXISTS (SELECT 1 FROM communities WHERE host = $1)")
+            .bind(host)
+            .fetch_one(pool)
+            .await?;
+    Ok(exists)
+}
+
+/// The account's bound Nostr pubkey, if any.
+pub async fn bound_pubkey(pool: &PgPool, account_id: Uuid) -> Result<Option<String>, DbError> {
+    let row: Option<(String,)> =
+        sqlx::query_as("SELECT pubkey FROM nostr_identities WHERE account_id = $1")
+            .bind(account_id)
+            .fetch_optional(pool)
+            .await?;
+    Ok(row.map(|(p,)| p))
+}
+
+/// The account a pubkey is bound to, if any. Used to check a transfer target
+/// is a real, sign-in-able owner.
+pub async fn account_for_pubkey(pool: &PgPool, pubkey: &str) -> Result<Option<Uuid>, DbError> {
+    let row: Option<(Uuid,)> =
+        sqlx::query_as("SELECT account_id FROM nostr_identities WHERE pubkey = $1")
+            .bind(pubkey)
+            .fetch_optional(pool)
+            .await?;
+    Ok(row.map(|(id,)| id))
+}
+
+/// Records a provisioned community with its owner and the relay's id for it.
 ///
 /// Idempotent on `host` so a retry after a relay timeout — where the relay may
-/// already have created the tenant — does not fail or duplicate the row.
-pub async fn record_community(
+/// already have created the tenant — refreshes rather than fails.
+pub async fn record_community_full(
     pool: &PgPool,
     account_id: Uuid,
     slug: &str,
     host: &str,
-) -> Result<Uuid, DbError> {
-    let (id,): (Uuid,) = sqlx::query_as(
-        "INSERT INTO communities (account_id, slug, host) VALUES ($1, $2, $3) \
-         ON CONFLICT (host) DO UPDATE SET host = EXCLUDED.host \
-         RETURNING id",
-    )
+    owner_pubkey: &str,
+    relay_community_id: Option<&str>,
+) -> Result<CommunityRow, DbError> {
+    let row = sqlx::query_as::<_, CommunityRow>("INSERT INTO communities (account_id, slug, host, owner_pubkey, relay_community_id) \
+         VALUES ($1, $2, $3, $4, $5) \
+         ON CONFLICT (host) DO UPDATE SET \
+           owner_pubkey = EXCLUDED.owner_pubkey, \
+           relay_community_id = COALESCE(EXCLUDED.relay_community_id, communities.relay_community_id) \
+         RETURNING id, slug, host, owner_pubkey, relay_community_id, archived_at")
     .bind(account_id)
     .bind(slug)
     .bind(host)
+    .bind(owner_pubkey)
+    .bind(relay_community_id)
     .fetch_one(pool)
     .await?;
-    Ok(id)
+    Ok(row)
 }
 
 /// Seeds the plan row for a newly provisioned community.
-///
-/// Trials start here; a Stripe webhook later upgrades the tier in place.
 pub async fn insert_default_plan(
     pool: &PgPool,
     community_id: Uuid,
@@ -99,21 +148,70 @@ pub async fn insert_default_plan(
     Ok(())
 }
 
-/// All communities for an account, newest first, including archived ones so the
-/// client can show and unarchive them.
+/// All communities for an account, newest first, archived included so the
+/// client can render and unarchive them.
 pub async fn list_communities(
     pool: &PgPool,
     account_id: Uuid,
-) -> Result<Vec<(Uuid, String, String, bool)>, DbError> {
-    let rows: Vec<(Uuid, String, String, Option<chrono::DateTime<chrono::Utc>>)> = sqlx::query_as(
-        "SELECT id, slug, host, archived_at FROM communities \
+) -> Result<Vec<CommunityRow>, DbError> {
+    let rows = sqlx::query_as::<_, CommunityRow>(
+        "SELECT id, slug, host, owner_pubkey, relay_community_id, archived_at FROM communities \
          WHERE account_id = $1 ORDER BY created_at DESC",
     )
     .bind(account_id)
     .fetch_all(pool)
     .await?;
-    Ok(rows
-        .into_iter()
-        .map(|(id, slug, host, archived_at)| (id, slug, host, archived_at.is_some()))
-        .collect())
+    Ok(rows)
+}
+
+/// A community row only if this account owns it.
+pub async fn community_owned_by(
+    pool: &PgPool,
+    community_id: Uuid,
+    account_id: Uuid,
+) -> Result<Option<CommunityRow>, DbError> {
+    let row = sqlx::query_as::<_, CommunityRow>("SELECT id, slug, host, owner_pubkey, relay_community_id, archived_at FROM communities WHERE id = $1 AND account_id = $2")
+    .bind(community_id)
+    .bind(account_id)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
+/// Sets or clears the archived marker.
+pub async fn set_archived(
+    pool: &PgPool,
+    community_id: Uuid,
+    archived: bool,
+) -> Result<CommunityRow, DbError> {
+    let row = sqlx::query_as::<_, CommunityRow>(
+        "UPDATE communities \
+         SET archived_at = CASE WHEN $2 THEN now() ELSE NULL END \
+         WHERE id = $1 RETURNING id, slug, host, owner_pubkey, relay_community_id, archived_at",
+    )
+    .bind(community_id)
+    .bind(archived)
+    .fetch_one(pool)
+    .await?;
+    Ok(row)
+}
+
+/// Moves a community to a new owning account and pubkey after the relay has
+/// accepted the rotation.
+pub async fn transfer_owner(
+    pool: &PgPool,
+    community_id: Uuid,
+    new_account_id: Uuid,
+    new_owner_pubkey: &str,
+) -> Result<CommunityRow, DbError> {
+    let row = sqlx::query_as::<_, CommunityRow>(
+        "UPDATE communities SET account_id = $2, owner_pubkey = $3 \
+         WHERE id = $1 RETURNING id, slug, host, owner_pubkey, relay_community_id, archived_at",
+    )
+    .bind(community_id)
+    .bind(new_account_id)
+    .bind(new_owner_pubkey)
+    .fetch_one(pool)
+    .await?;
+    Ok(row)
 }

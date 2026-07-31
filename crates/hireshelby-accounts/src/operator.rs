@@ -78,6 +78,23 @@ pub struct ProvisionResponse {
     pub host: Option<String>,
 }
 
+#[derive(Debug, serde::Serialize)]
+struct HostRequest<'a> {
+    host: &'a str,
+    /// The relay authorizes archive/unarchive against the asserted end-user
+    /// owner, not just the operator key.
+    owner_pubkey: &'a str,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct TransferRequest<'a> {
+    community_id: &'a str,
+    new_owner_pubkey: &'a str,
+    /// The relay compare-and-swaps on this, so a stale client cannot clobber a
+    /// transfer that happened between its read and its write.
+    expected_owner_pubkey: &'a str,
+}
+
 pub struct OperatorClient {
     http: reqwest::Client,
     base_url: String,
@@ -91,6 +108,85 @@ impl OperatorClient {
             base_url: base_url.into().trim_end_matches('/').to_string(),
             keys,
         }
+    }
+
+    /// Shared POST-with-NIP-98 plumbing for the operator surface.
+    async fn post_signed(
+        &self,
+        path: &str,
+        body: Vec<u8>,
+    ) -> Result<serde_json::Value, OperatorError> {
+        let url = format!("{}{path}", self.base_url);
+        // The signature covers this exact byte string; send it verbatim rather
+        // than re-serializing, or the payload hash will not match.
+        let auth = sign_nip98(&self.keys, "POST", &url, Some(&body))?;
+        let resp = self
+            .http
+            .post(&url)
+            .header(reqwest::header::AUTHORIZATION, auth)
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .body(body)
+            .send()
+            .await
+            .map_err(|e| OperatorError::Transport(e.to_string()))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(OperatorError::Rejected {
+                status: status.as_u16(),
+                body: text,
+            });
+        }
+        serde_json::from_str(&text).map_err(|e| OperatorError::Transport(e.to_string()))
+    }
+
+    /// Idempotently archives a community on the relay, asserting the acting
+    /// end-user owner.
+    pub async fn archive_community(
+        &self,
+        host: &str,
+        owner_pubkey: &str,
+    ) -> Result<(), OperatorError> {
+        let body = serde_json::to_vec(&HostRequest { host, owner_pubkey })
+            .map_err(|e| OperatorError::Signing(e.to_string()))?;
+        self.post_signed("/operator/communities/archive", body)
+            .await
+            .map(|_| ())
+    }
+
+    /// Idempotently unarchives a community on the relay, asserting the acting
+    /// end-user owner.
+    pub async fn unarchive_community(
+        &self,
+        host: &str,
+        owner_pubkey: &str,
+    ) -> Result<(), OperatorError> {
+        let body = serde_json::to_vec(&HostRequest { host, owner_pubkey })
+            .map_err(|e| OperatorError::Signing(e.to_string()))?;
+        self.post_signed("/operator/communities/unarchive", body)
+            .await
+            .map(|_| ())
+    }
+
+    /// Rotates community ownership on the relay.
+    ///
+    /// `expected_owner` makes the rotation a compare-and-swap: the relay
+    /// rejects the call if ownership changed since we read it.
+    pub async fn transfer_community(
+        &self,
+        community_id: &str,
+        new_owner_pubkey: &str,
+        expected_owner_pubkey: &str,
+    ) -> Result<(), OperatorError> {
+        let body = serde_json::to_vec(&TransferRequest {
+            community_id,
+            new_owner_pubkey,
+            expected_owner_pubkey,
+        })
+        .map_err(|e| OperatorError::Signing(e.to_string()))?;
+        self.post_signed("/operator/communities/transfer", body)
+            .await
+            .map(|_| ())
     }
 
     /// Creates (or re-asserts) a community on the relay.
