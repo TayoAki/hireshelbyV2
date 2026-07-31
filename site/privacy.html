@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — HireShelby</title>
+<style>
+  body{font:16px/1.7 ui-sans-serif,-apple-system,"Segoe UI",sans-serif;background:#0d1117;color:#f0f4f8;margin:0}
+  main{max-width:760px;margin:0 auto;padding:64px 24px}
+  h1{font-size:32px;letter-spacing:-.02em}h2{font-size:20px;margin-top:36px}
+  p,li{color:#c3cdd9;font-size:15px}a{color:#63b3ed;text-decoration:none}
+  .muted{color:#96a3b4;font-size:13.5px}
+  table{border-collapse:collapse;width:100%;margin-top:12px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #2d3748;font-size:14.5px}
+  th{color:#f0f4f8}td{color:#c3cdd9}
+</style>
+</head>
+<body><main>
+<p><a href="/">← HireShelby</a></p>
+<h1>Privacy Policy</h1>
+<p class="muted">Effective: August 1, 2026 · A working draft; have counsel review it before relying on it, particularly for GDPR/CCPA representations.</p>
+
+<h2>What we collect</h2>
+<table>
+  <tr><th>Data</th><th>Why</th><th>Retention</th></tr>
+  <tr><td>Email, display name, identity-provider id</td><td>Your account and sign-in</td><td>While your account exists</td></tr>
+  <tr><td>Nostr public key you bind</td><td>Proves you control your workspace identity; workspaces are owned by public key</td><td>Until you unbind it or delete the account</td></tr>
+  <tr><td>Workspace content: messages, threads, files, git repositories, agent transcripts</td><td>It is the product — we store and index it so your team can read and search it</td><td>Until you delete it or 60 days after account closure</td></tr>
+  <tr><td>Membership and audit records</td><td>Access control and a tamper-evident history of who did what</td><td>Life of the workspace</td></tr>
+  <tr><td>Billing records (customer id, subscription, invoices)</td><td>Payment and tax compliance</td><td>As required by law, typically 7 years</td></tr>
+  <tr><td>Operational logs (IP address, timestamps, error traces)</td><td>Security, abuse prevention, debugging</td><td>30 days</td></tr>
+</table>
+
+<h2>What we do not collect</h2>
+<ul>
+  <li><strong>Your AI provider keys.</strong> Keys you configure in the desktop application are stored on your own device — in your OS keychain where available. They are not transmitted to or stored by us.</li>
+  <li><strong>Card numbers.</strong> Payments go directly to Stripe; we receive only a customer reference and subscription status.</li>
+  <li><strong>Your content for AI training.</strong> We do not train models on your data, and we do not sell your data to anyone.</li>
+</ul>
+
+<h2>Where your AI prompts go</h2>
+<p>When an agent runs, its prompts and your workspace context are sent to the AI provider <em>you</em> configured, under that provider's privacy terms — not ours. If you run agents locally (Claude Code, Goose, Codex), that traffic goes from your machine to your provider and does not pass through our servers at all. Choose your provider accordingly.</p>
+
+<h2>Sub-processors</h2>
+<ul>
+  <li><strong>Stripe</strong> — payments and subscription billing</li>
+  <li><strong>WorkOS</strong> — authentication and enterprise SSO</li>
+  <li><strong>Railway</strong> — application hosting, database, and object storage</li>
+</ul>
+<p>We will update this list before adding a sub-processor that handles customer data.</p>
+
+<h2>Security</h2>
+<p>Traffic is encrypted in transit (TLS). Workspace events are cryptographically signed, and workspaces are isolated by host at the point of connection — a request for one workspace cannot read another's data. Session credentials and login codes are stored only as SHA-256 digests, never in plaintext. Report vulnerabilities to <a href="mailto:security@hireshelby.com">security@hireshelby.com</a>; we aim to acknowledge within two business days.</p>
+
+<h2>Your rights</h2>
+<p>You can access, export, correct, or delete your data. Workspace owners can export workspace content from the application; account deletion requests go to <a href="mailto:support@hireshelby.com">support@hireshelby.com</a> and are completed within 30 days, excluding records we must retain for tax or legal reasons. Depending on where you live, you may have additional rights under GDPR or CCPA, including objecting to processing and lodging a complaint with a supervisory authority. We do not sell personal information.</p>
+
+<h2>Cookies</h2>
+<p>The marketing site uses no advertising or analytics cookies. The application uses local storage on your device to keep you signed in and to remember your preferences.</p>
+
+<h2>Children</h2>
+<p>HireShelby is not intended for anyone under 16, and we do not knowingly collect their data.</p>
+
+<h2>International transfers</h2>
+<p>Our infrastructure and sub-processors may process data in the United States. Where required, transfers rely on Standard Contractual Clauses or an equivalent mechanism.</p>
+
+<h2>Changes and contact</h2>
+<p>Material changes will be announced in the application or by email at least 14 days before taking effect. Questions: <a href="mailto:support@hireshelby.com">support@hireshelby.com</a>.</p>
+</main></body></html>
