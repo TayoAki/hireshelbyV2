@@ -27,6 +27,7 @@
 use std::sync::Arc;
 
 use axum::{extract::State, http::HeaderMap, Json};
+use base64::Engine as _;
 use chrono::{DateTime, Utc};
 use nostr::{JsonUtil as _, ToBech32 as _};
 use serde::Deserialize;
@@ -46,6 +47,15 @@ const CHALLENGE_TTL_MINUTES: i64 = 10;
 
 fn expiry_string(at: DateTime<Utc>) -> String {
     at.to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
+}
+
+/// Nonce in the exact shape `nostr_bind::validate_nonce` demands: 43
+/// characters of URL-safe base64 (32 random bytes, unpadded). A UUID renders
+/// as 32 hex characters and is rejected by the desktop before it ever signs,
+/// which is the "invalid nonce" the client surfaces.
+fn binding_nonce() -> String {
+    let bytes: [u8; 32] = rand::random();
+    base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(bytes)
 }
 
 /// Six-digit code displayed by clients during binding so a user can confirm
@@ -86,12 +96,13 @@ pub async fn challenge(
     let user = session_or_unauthorized(state.as_ref(), &headers).await?;
 
     let challenge_id = Uuid::new_v4();
-    let nonce = Uuid::new_v4().simple().to_string();
+    let nonce = binding_nonce();
     let code = verification_code();
-    let origin = req
-        .origin
-        .filter(|o| !o.trim().is_empty())
-        .unwrap_or_else(|| state.config.relay_api_base_url.clone());
+    // Server-minted, never the caller's: the origin is signed over, so letting
+    // a client choose it would let it bind an identity under someone else's
+    // origin. It must also be a bare https origin — `nostr_bind::validate_origin`
+    // rejects http, credentials, paths, queries, and fragments.
+    let origin = state.config.public_origin.clone();
     let expires_at = Utc::now() + chrono::Duration::minutes(CHALLENGE_TTL_MINUTES);
 
     // The nonce column is unique; the full challenge payload rides in JSON so
@@ -420,6 +431,78 @@ mod tests {
         // desktop/src-tauri/src/nostr_bind.rs pins KIND to buzz-core's
         // KIND_NOSTR_IDENTITY_BINDING; drift here breaks every binding.
         assert_eq!(BINDING_KIND, 24243);
+    }
+
+    // ---- Client-compatibility guards -------------------------------------
+    //
+    // These mirror desktop/src-tauri/src/nostr_bind.rs exactly. The desktop
+    // validates a challenge BEFORE signing it, so a server-side value it
+    // rejects never reaches the signature — the user just sees an error. A
+    // round-trip test against our own verifier cannot catch that, which is how
+    // the original "invalid nonce" shipped.
+
+    /// Copy of `nostr_bind::validate_nonce`.
+    fn desktop_accepts_nonce(nonce: &str) -> bool {
+        const NONCE_CHARS: &str =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+        !nonce.is_empty() && nonce.len() == 43 && nonce.chars().all(|c| NONCE_CHARS.contains(c))
+    }
+
+    /// Copy of `nostr_bind::validate_origin`.
+    fn desktop_accepts_origin(origin: &str) -> bool {
+        match url::Url::parse(origin) {
+            Ok(u) => {
+                u.scheme() == "https"
+                    && u.host_str().is_some()
+                    && u.username().is_empty()
+                    && u.password().is_none()
+                    && u.path() == "/"
+                    && u.query().is_none()
+                    && u.fragment().is_none()
+            }
+            Err(_) => false,
+        }
+    }
+
+    #[test]
+    fn generated_nonce_passes_the_desktop_validator() {
+        for _ in 0..32 {
+            let nonce = binding_nonce();
+            assert!(
+                desktop_accepts_nonce(&nonce),
+                "desktop would reject nonce {nonce:?} (len {})",
+                nonce.len()
+            );
+        }
+    }
+
+    #[test]
+    fn a_uuid_nonce_would_be_rejected_by_the_desktop() {
+        // Documents the original bug: 32 hex chars, not 43 base64url.
+        let uuid_nonce = Uuid::new_v4().simple().to_string();
+        assert!(!desktop_accepts_nonce(&uuid_nonce));
+    }
+
+    #[test]
+    fn default_origin_passes_the_desktop_validator() {
+        assert!(desktop_accepts_origin("https://accounts.hireshelby.com"));
+    }
+
+    #[test]
+    fn http_and_pathful_origins_would_be_rejected() {
+        // The second case is what the desktop sent us in local dev.
+        for origin in [
+            "http://localhost:4000",
+            "http://accounts.hireshelby.com",
+            "https://accounts.hireshelby.com/api",
+            "https://user:pw@accounts.hireshelby.com",
+            "https://accounts.hireshelby.com/?x=1",
+        ] {
+            assert!(
+                !desktop_accepts_origin(origin),
+                "{origin} should be rejected client-side"
+            );
+        }
     }
 
     #[test]

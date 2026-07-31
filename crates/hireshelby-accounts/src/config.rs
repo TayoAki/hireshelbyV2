@@ -62,6 +62,11 @@ pub struct Config {
     /// WorkOS API secret for the authenticate-with-code exchange. Required for
     /// hosted login to complete; never logged.
     pub workos_client_secret: Option<String>,
+    /// Canonical https origin of this control plane, signed into identity
+    /// challenges. Must be a bare https origin (no path/query/fragment): the
+    /// desktop's `nostr_bind::validate_origin` rejects anything else, including
+    /// http — so this stays https even when running locally over http.
+    pub public_origin: String,
     /// Shared secret the relay presents as `X-Quota-Token` on seat-quota
     /// checks. Unset = the endpoint answers without a token (fine on a private
     /// network; set it when the control plane is internet-reachable).
@@ -157,6 +162,10 @@ impl Config {
                 .ok()
                 .map(|v| v.trim().to_string())
                 .filter(|v| !v.is_empty()),
+            public_origin: optional_or(
+                "HIRESHELBY_PUBLIC_ORIGIN",
+                "https://accounts.hireshelby.com",
+            ),
             quota_token: std::env::var("HIRESHELBY_QUOTA_TOKEN")
                 .ok()
                 .map(|v| v.trim().to_string())
@@ -227,6 +236,7 @@ mod tests {
             community_domain: "communities.hireshelby.com".into(),
             workos_client_id: None,
             workos_client_secret: None,
+            public_origin: "https://accounts.hireshelby.com".into(),
             quota_token: None,
             stripe_secret_key: None,
             stripe_price_team: None,
