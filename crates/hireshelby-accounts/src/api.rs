@@ -523,6 +523,71 @@ pub async fn check_seats(
     }))
 }
 
+// ---------------------------------------------------------------------------
+// POST /v1/quota/seats   { host, seats_in_use }   (relay-facing)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Deserialize)]
+pub struct HostSeatCheckRequest {
+    pub host: String,
+    pub seats_in_use: i64,
+}
+
+/// Host-keyed seat check for the relay's enforcement path.
+///
+/// The relay's native tenant key is the host, not our community id, so this
+/// endpoint accepts the host and does the mapping. Unknown hosts are
+/// **allowed**: a community this control plane never provisioned (a
+/// self-managed tenant on the same relay) has no plan to enforce.
+pub async fn quota_seats(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(req): Json<HostSeatCheckRequest>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    // Shared-token gate, when configured. Constant-time comparison is not
+    // needed here — the token authorizes reading allow/deny, not money — but
+    // the check must not reveal whether a token exists, hence 404 either way.
+    if let Some(expected) = &state.config.quota_token {
+        let presented = headers
+            .get("x-quota-token")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_default();
+        if presented != expected {
+            return Err((StatusCode::NOT_FOUND, Json(serde_json::json!({}))));
+        }
+    }
+
+    let community_id = match db::community_id_for_host(&state.db, &req.host).await {
+        Ok(Some(id)) => id,
+        Ok(None) => {
+            return Ok(Json(serde_json::json!({ "allowed": true })));
+        }
+        Err(error) => {
+            // Fail soft, same contract as the relay side expects.
+            tracing::error!(%error, host = %req.host, "quota: host lookup failed; allowing");
+            return Ok(Json(serde_json::json!({ "allowed": true })));
+        }
+    };
+
+    let plan = match db::load_plan(&state.db, community_id).await {
+        Ok(Some(plan)) => plan,
+        Ok(None) => {
+            return Ok(Json(serde_json::json!({ "allowed": true })));
+        }
+        Err(error) => {
+            tracing::error!(%error, %community_id, "quota: plan lookup failed; allowing");
+            return Ok(Json(serde_json::json!({ "allowed": true })));
+        }
+    };
+
+    match check_seat_available(&plan, req.seats_in_use) {
+        QuotaDecision::Deny { reason } => Ok(Json(
+            serde_json::json!({ "allowed": false, "reason": reason }),
+        )),
+        _ => Ok(Json(serde_json::json!({ "allowed": true }))),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

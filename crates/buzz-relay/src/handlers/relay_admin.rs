@@ -277,6 +277,19 @@ async fn execute_relay_admin_command(
                 return Err(format!("invalid role: {role}"));
             }
 
+            // Seat quota: ask the billing plane before growing membership.
+            // Fail-soft inside check_seat_quota; only a definitive "no" denies.
+            let seats_in_use = state
+                .db
+                .count_relay_members(tenant.community())
+                .await
+                .unwrap_or(0);
+            if let crate::quota::SeatQuotaOutcome::Denied(reason) =
+                crate::quota::check_seat_quota(tenant.host(), seats_in_use).await
+            {
+                return Err(format!("seat_limit: {reason}"));
+            }
+
             // Note: idempotent — if target already exists at any role, this is a
             // silent no-op. The existing role is NOT overwritten. Use kind:9032
             // to change an existing member's role.

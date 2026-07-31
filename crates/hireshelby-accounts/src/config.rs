@@ -62,6 +62,18 @@ pub struct Config {
     /// WorkOS API secret for the authenticate-with-code exchange. Required for
     /// hosted login to complete; never logged.
     pub workos_client_secret: Option<String>,
+    /// Shared secret the relay presents as `X-Quota-Token` on seat-quota
+    /// checks. Unset = the endpoint answers without a token (fine on a private
+    /// network; set it when the control plane is internet-reachable).
+    pub quota_token: Option<String>,
+    /// Stripe API secret key (`sk_...`) for creating hosted Checkout and
+    /// Customer Portal sessions. Never logged.
+    pub stripe_secret_key: Option<String>,
+    /// Stripe price ids for the two self-serve tiers.
+    pub stripe_price_team: Option<String>,
+    pub stripe_price_business: Option<String>,
+    /// Public site base URL, used for checkout success/cancel redirects.
+    pub site_url: Option<String>,
     /// Stripe webhook signing secret (`whsec_...`). When unset the webhook
     /// endpoint answers 404 so a deployment without billing does not expose an
     /// unauthenticated POST surface.
@@ -145,6 +157,26 @@ impl Config {
                 .ok()
                 .map(|v| v.trim().to_string())
                 .filter(|v| !v.is_empty()),
+            quota_token: std::env::var("HIRESHELBY_QUOTA_TOKEN")
+                .ok()
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
+            stripe_secret_key: std::env::var("HIRESHELBY_STRIPE_SECRET_KEY")
+                .ok()
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
+            stripe_price_team: std::env::var("HIRESHELBY_STRIPE_PRICE_TEAM")
+                .ok()
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
+            stripe_price_business: std::env::var("HIRESHELBY_STRIPE_PRICE_BUSINESS")
+                .ok()
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
+            site_url: std::env::var("HIRESHELBY_SITE_URL")
+                .ok()
+                .map(|v| v.trim().trim_end_matches('/').to_string())
+                .filter(|v| !v.is_empty()),
             stripe_webhook_secret: std::env::var("HIRESHELBY_STRIPE_WEBHOOK_SECRET")
                 .ok()
                 .map(|v| v.trim().to_string())
@@ -195,6 +227,11 @@ mod tests {
             community_domain: "communities.hireshelby.com".into(),
             workos_client_id: None,
             workos_client_secret: None,
+            quota_token: None,
+            stripe_secret_key: None,
+            stripe_price_team: None,
+            stripe_price_business: None,
+            site_url: None,
             stripe_webhook_secret: None,
             dev_login_enabled: false,
         }

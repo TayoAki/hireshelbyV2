@@ -215,3 +215,12 @@ pub async fn transfer_owner(
     .await?;
     Ok(row)
 }
+
+/// The community id for a relay host, if this control plane provisioned it.
+pub async fn community_id_for_host(pool: &PgPool, host: &str) -> Result<Option<Uuid>, DbError> {
+    let row: Option<(Uuid,)> = sqlx::query_as("SELECT id FROM communities WHERE host = $1")
+        .bind(host)
+        .fetch_optional(pool)
+        .await?;
+    Ok(row.map(|(id,)| id))
+}

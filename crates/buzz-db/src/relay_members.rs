@@ -114,6 +114,17 @@ pub async fn add_relay_member(
     Ok(result.rows_affected() > 0)
 }
 
+/// Current membership size for a community. Used by seat-quota enforcement,
+/// which needs the count *before* an insert.
+pub async fn count_relay_members(pool: &PgPool, community: CommunityId) -> Result<i64> {
+    let (count,): (i64,) =
+        sqlx::query_as("SELECT count(*) FROM relay_members WHERE community_id = $1")
+            .bind(community.as_uuid())
+            .fetch_one(pool)
+            .await?;
+    Ok(count)
+}
+
 /// Claims relay membership via an invite and atomically persists policy evidence.
 ///
 /// Returns `true` when membership was inserted, or `false` when the pubkey was

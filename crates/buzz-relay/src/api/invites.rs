@@ -362,6 +362,24 @@ pub async fn claim_invite(
         .map_err(|e| api_error(StatusCode::BAD_REQUEST, &format!("invalid claim JSON: {e}")))?;
 
     let claimer_hex = pubkey.to_hex();
+
+    // Seat quota gate for both the v1 and v2 claim paths. Checked before any
+    // token verification so a full community fails fast with a clear error
+    // instead of consuming an invite use. Fail-soft inside check_seat_quota.
+    let seats_in_use = state
+        .db
+        .count_relay_members(tenant.community())
+        .await
+        .unwrap_or(0);
+    if let crate::quota::SeatQuotaOutcome::Denied(reason) =
+        crate::quota::check_seat_quota(tenant.host(), seats_in_use).await
+    {
+        return Err((
+            StatusCode::PAYMENT_REQUIRED,
+            Json(serde_json::json!({ "error": "seat_limit", "message": reason })),
+        ));
+    }
+
     let key = invite_token::derive_invite_key(&state.relay_keypair);
 
     // --- v2 database-backed path ---

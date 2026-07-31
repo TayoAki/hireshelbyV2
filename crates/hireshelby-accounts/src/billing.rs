@@ -219,9 +219,258 @@ pub async fn webhook(
     }
 }
 
+// ---------------------------------------------------------------------------
+// POST /v1/billing/checkout   { community_id, tier, seats }
+// POST /v1/billing/portal     { community_id }
+// ---------------------------------------------------------------------------
+//
+// Stripe Checkout and the Customer Portal are **hosted by Stripe**: we create
+// a session server-side and hand back `url`; the customer pays (or manages
+// their subscription) on Stripe's page and never types a card into anything
+// we serve. `metadata.community_id`/`metadata.tier` set here are what the
+// webhook above reads back to flip the plan.
+
+use axum::extract::Json as JsonBody;
+
+#[derive(Debug, serde::Deserialize)]
+pub struct CheckoutRequest {
+    pub community_id: Uuid,
+    /// "team" or "business" — mapped to a Stripe price id from config.
+    pub tier: String,
+    pub seats: i64,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct PortalRequest {
+    pub community_id: Uuid,
+}
+
+fn billing_unconfigured() -> (StatusCode, axum::Json<serde_json::Value>) {
+    (
+        StatusCode::NOT_FOUND,
+        axum::Json(serde_json::json!({
+            "error": { "code": "billing_unconfigured", "message": "Billing is not configured on this deployment." }
+        })),
+    )
+}
+
+/// Creates a hosted Checkout Session and returns its URL.
+///
+/// Auth: requires a signed-in session that owns the community — otherwise
+/// anyone could open checkouts against arbitrary communities (harmless to us,
+/// confusing to customers, and a spam vector against Stripe).
+pub async fn checkout(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    JsonBody(req): JsonBody<CheckoutRequest>,
+) -> Result<axum::Json<serde_json::Value>, (StatusCode, axum::Json<serde_json::Value>)> {
+    let (Some(secret_key), Some(site_url)) = (
+        state.config.stripe_secret_key.as_ref(),
+        state.config.site_url.as_ref(),
+    ) else {
+        return Err(billing_unconfigured());
+    };
+
+    let user = crate::auth::authenticate(state.as_ref(), &headers)
+        .await
+        .map_err(|_| {
+            (
+                StatusCode::UNAUTHORIZED,
+                axum::Json(serde_json::json!({
+                    "error": { "code": "unauthorized", "message": "Sign in first." }
+                })),
+            )
+        })?;
+    let owned = crate::db::community_owned_by(&state.db, req.community_id, user.account_id)
+        .await
+        .ok()
+        .flatten();
+    if owned.is_none() {
+        return Err((
+            StatusCode::FORBIDDEN,
+            axum::Json(serde_json::json!({
+                "error": { "code": "not_owner", "message": "Only the community owner can manage billing." }
+            })),
+        ));
+    }
+
+    let price = match req.tier.as_str() {
+        "team" => state.config.stripe_price_team.as_ref(),
+        "business" => state.config.stripe_price_business.as_ref(),
+        _ => None,
+    };
+    let Some(price) = price else {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            axum::Json(serde_json::json!({
+                "error": { "code": "invalid_tier", "message": "Unknown tier or missing price id." }
+            })),
+        ));
+    };
+    let seats = req.seats.clamp(1, 500);
+
+    // Stripe's API is form-encoded. The session is subscription mode with an
+    // adjustable quantity so seat count changes flow through the same
+    // subscription (and webhook) later.
+    let form: Vec<(String, String)> = vec![
+        ("mode".into(), "subscription".into()),
+        ("line_items[0][price]".into(), price.clone()),
+        ("line_items[0][quantity]".into(), seats.to_string()),
+        ("success_url".into(), format!("{site_url}/checkout/success")),
+        ("cancel_url".into(), format!("{site_url}/pricing")),
+        (
+            "metadata[community_id]".into(),
+            req.community_id.to_string(),
+        ),
+        ("metadata[tier]".into(), req.tier.clone()),
+        (
+            "subscription_data[metadata][community_id]".into(),
+            req.community_id.to_string(),
+        ),
+        ("subscription_data[metadata][tier]".into(), req.tier.clone()),
+    ];
+    let body = form
+        .iter()
+        .map(|(k, v)| format!("{}={}", k, urlencoding_encode(v)))
+        .collect::<Vec<_>>()
+        .join("&");
+
+    let response = state
+        .http
+        .post("https://api.stripe.com/v1/checkout/sessions")
+        .header("authorization", format!("Bearer {secret_key}"))
+        .header("content-type", "application/x-www-form-urlencoded")
+        .body(body)
+        .send()
+        .await
+        .map_err(|error| {
+            tracing::error!(%error, "billing: checkout session transport failure");
+            billing_unconfigured()
+        })?;
+    let status = response.status();
+    let value: serde_json::Value = response.json().await.unwrap_or_default();
+    if !status.is_success() {
+        tracing::error!(%status, body = %value, "billing: Stripe rejected checkout session");
+        return Err((
+            StatusCode::BAD_GATEWAY,
+            axum::Json(serde_json::json!({
+                "error": { "code": "stripe_error", "message": "Could not start checkout. Try again." }
+            })),
+        ));
+    }
+
+    Ok(axum::Json(serde_json::json!({ "url": value["url"] })))
+}
+
+/// Opens a hosted Customer Portal session for the community's Stripe customer.
+pub async fn portal(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    JsonBody(req): JsonBody<PortalRequest>,
+) -> Result<axum::Json<serde_json::Value>, (StatusCode, axum::Json<serde_json::Value>)> {
+    let (Some(secret_key), Some(site_url)) = (
+        state.config.stripe_secret_key.as_ref(),
+        state.config.site_url.as_ref(),
+    ) else {
+        return Err(billing_unconfigured());
+    };
+    let user = crate::auth::authenticate(state.as_ref(), &headers)
+        .await
+        .map_err(|_| {
+            (
+                StatusCode::UNAUTHORIZED,
+                axum::Json(serde_json::json!({
+                    "error": { "code": "unauthorized", "message": "Sign in first." }
+                })),
+            )
+        })?;
+    if crate::db::community_owned_by(&state.db, req.community_id, user.account_id)
+        .await
+        .ok()
+        .flatten()
+        .is_none()
+    {
+        return Err((
+            StatusCode::FORBIDDEN,
+            axum::Json(serde_json::json!({
+                "error": { "code": "not_owner", "message": "Only the community owner can manage billing." }
+            })),
+        ));
+    }
+
+    let customer: Option<(Option<String>,)> =
+        sqlx::query_as("SELECT stripe_customer_id FROM community_plans WHERE community_id = $1")
+            .bind(req.community_id)
+            .fetch_optional(&state.db)
+            .await
+            .ok()
+            .flatten();
+    let Some((Some(customer),)) = customer else {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            axum::Json(serde_json::json!({
+                "error": { "code": "no_subscription", "message": "No billing history for this community yet." }
+            })),
+        ));
+    };
+
+    let body = format!(
+        "customer={}&return_url={}",
+        urlencoding_encode(&customer),
+        urlencoding_encode(&format!("{site_url}/account"))
+    );
+    let response = state
+        .http
+        .post("https://api.stripe.com/v1/billing_portal/sessions")
+        .header("authorization", format!("Bearer {secret_key}"))
+        .header("content-type", "application/x-www-form-urlencoded")
+        .body(body)
+        .send()
+        .await
+        .map_err(|error| {
+            tracing::error!(%error, "billing: portal session transport failure");
+            billing_unconfigured()
+        })?;
+    let status = response.status();
+    let value: serde_json::Value = response.json().await.unwrap_or_default();
+    if !status.is_success() {
+        tracing::error!(%status, body = %value, "billing: Stripe rejected portal session");
+        return Err((
+            StatusCode::BAD_GATEWAY,
+            axum::Json(serde_json::json!({
+                "error": { "code": "stripe_error", "message": "Could not open the billing portal." }
+            })),
+        ));
+    }
+    Ok(axum::Json(serde_json::json!({ "url": value["url"] })))
+}
+
+/// Minimal form-value percent-encoding (space, &, =, %, +, and non-ASCII).
+fn urlencoding_encode(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for byte in value.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(byte as char)
+            }
+            other => out.push_str(&format!("%{other:02X}")),
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn form_encoding_escapes_metadata_safely() {
+        assert_eq!(urlencoding_encode("cus_123"), "cus_123");
+        assert_eq!(
+            urlencoding_encode("https://x.test/a?b=c&d"),
+            "https%3A%2F%2Fx.test%2Fa%3Fb%3Dc%26d"
+        );
+    }
 
     fn sign(payload: &[u8], secret: &str, t: i64) -> String {
         let mut mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes()).unwrap();

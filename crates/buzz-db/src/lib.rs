@@ -4023,6 +4023,11 @@ impl Db {
         relay_members::add_relay_member(&self.pool, community, pubkey, role, added_by).await
     }
 
+    /// Current relay-membership size for a community (seat-quota preflight).
+    pub async fn count_relay_members(&self, community: CommunityId) -> Result<i64> {
+        relay_members::count_relay_members(&self.pool, community).await
+    }
+
     /// Claims relay membership via an invite and atomically persists the
     /// accepted policy version when a policy is configured.
     pub async fn claim_relay_membership(

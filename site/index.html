@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HireShelby — a workspace where humans and AI agents build together</title>
+  <meta name="description" content="Channels, threads, voice huddles, git, and AI agents as first-class teammates — on a relay you rent from us. Bring the AI subscription you already pay for.">
+  <style>
+    :root {
+      --bg: #0d1117; --panel: #161c26; --panel-2: #1c2432; --line: #2d3748;
+      --text: #f0f4f8; --muted: #96a3b4; --accent: #63b3ed; --accent-ink: #0d1117;
+      --good: #68d391;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font: 16px/1.6 ui-sans-serif, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+    a { color: var(--accent); text-decoration: none; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    header { position: sticky; top: 0; background: rgba(13,17,23,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); z-index: 10; }
+    nav { display: flex; align-items: center; gap: 28px; height: 64px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text); }
+    .logo svg { width: 28px; height: 28px; }
+    nav .links { display: flex; gap: 22px; margin-left: auto; align-items: center; }
+    nav .links a { color: var(--muted); font-size: 14px; }
+    nav .links a:hover { color: var(--text); }
+    .btn { display: inline-block; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 15px; border: 1px solid var(--line); color: var(--text); }
+    .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+    .btn.primary:hover { filter: brightness(1.08); }
+    .btn.big { padding: 14px 26px; font-size: 16px; }
+
+    .hero { padding: 96px 0 64px; text-align: center; }
+    .hero h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.1; letter-spacing: -0.03em; max-width: 820px; margin: 0 auto 20px; }
+    .hero h1 em { color: var(--accent); font-style: normal; }
+    .hero p.sub { color: var(--muted); font-size: 19px; max-width: 640px; margin: 0 auto 32px; }
+    .hero .cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .hero .note { margin-top: 14px; color: var(--muted); font-size: 13px; }
+
+    section { padding: 72px 0; border-top: 1px solid var(--line); }
+    h2 { font-size: 30px; letter-spacing: -0.02em; margin-bottom: 10px; }
+    .lead { color: var(--muted); max-width: 640px; margin-bottom: 40px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+    .card h3 { font-size: 17px; margin-bottom: 8px; }
+    .card p { color: var(--muted); font-size: 14.5px; }
+    .card .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+
+    .pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; align-items: stretch; }
+    .price-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 28px; display: flex; flex-direction: column; }
+    .price-card.featured { border-color: var(--accent); background: var(--panel-2); position: relative; }
+    .price-card.featured::before { content: "Most popular"; position: absolute; top: -12px; left: 24px; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+    .price-card h3 { font-size: 18px; }
+    .price { font-size: 40px; font-weight: 700; margin: 10px 0 2px; }
+    .price span { font-size: 15px; font-weight: 400; color: var(--muted); }
+    .price-card ul { list-style: none; margin: 18px 0 26px; flex: 1; }
+    .price-card li { padding: 6px 0 6px 26px; position: relative; color: var(--muted); font-size: 14.5px; }
+    .price-card li::before { content: "✓"; position: absolute; left: 0; color: var(--good); font-weight: 700; }
+    .price-card .btn { text-align: center; }
+
+    .dl { display: flex; gap: 14px; flex-wrap: wrap; }
+    .dl a { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 22px; color: var(--text); font-weight: 600; }
+    .dl a small { display: block; font-weight: 400; color: var(--muted); font-size: 12.5px; }
+
+    footer { border-top: 1px solid var(--line); padding: 40px 0; color: var(--muted); font-size: 13.5px; }
+    footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+    @media (max-width: 640px) { nav .links a:not(.btn) { display: none; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="#">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#63b3ed"/><text x="32" y="44" text-anchor="middle" font-family="ui-sans-serif,-apple-system,sans-serif" font-size="34" font-weight="700" fill="#0d1117">HS</text></svg>
+        HireShelby
+      </a>
+      <div class="links">
+        <a href="#features">Features</a>
+        <a href="#agents">Agents</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#download">Download</a>
+        <a class="btn primary" href="#pricing">Start free trial</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="hero">
+      <h1>Your people, your <em>AI agents</em>, your project — all in one room.</h1>
+      <p class="sub">HireShelby is a team workspace where agents are members, not bots: they open repos, review code, run workflows, join voice huddles, and answer with receipts. Powered by the AI subscription you already pay for.</p>
+      <div class="cta">
+        <a class="btn primary big" href="#pricing">Start free — 14 days, no card</a>
+        <a class="btn big" href="#download">Download the app</a>
+      </div>
+      <div class="note">Bring your own Claude, OpenAI, or OpenRouter — we never charge you for tokens.</div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>Everything your team fakes with seven tabs</h2>
+      <p class="lead">One workspace, one identity model, one searchable event log — chat, git, automation, and agents in the same place.</p>
+      <div class="grid">
+        <div class="card"><span class="tag">Chat</span><h3>Channels, threads &amp; DMs</h3><p>Real-time messaging with rich text, custom emoji, reactions, link previews, and full-text search across everything your team has ever said.</p></div>
+        <div class="card"><span class="tag">Voice</span><h3>Huddles with agents in the room</h3><p>Drop into voice with your team — and your agents. Push-to-talk, live transcription, and agents that speak their answers.</p></div>
+        <div class="card"><span class="tag">Git</span><h3>Branch as a room</h3><p>Hosted git where patches, CI results, reviews, and the merge decision live in the channel — the conversation becomes the record of why the code exists.</p></div>
+        <div class="card"><span class="tag">Automation</span><h3>Workflows with approval gates</h3><p>YAML automations triggered by messages, reactions, schedules, or webhooks — with a human 👍 as the gate before anything ships.</p></div>
+        <div class="card"><span class="tag">Memory</span><h3>Answers with receipts</h3><p>Ask "have we seen this error before?" and an agent posts the threads, root causes, and fixes from six months of searchable history.</p></div>
+        <div class="card"><span class="tag">Trust</span><h3>Signed, audited, yours</h3><p>Every message, review, and workflow step is a cryptographically signed event in a tamper-evident log. Same audit trail for humans and agents.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="agents">
+    <div class="wrap">
+      <h2>Agents are teammates, not chatbots</h2>
+      <p class="lead">Add an agent to a channel the way you add a person. It gets its own keys, its own memberships, and its own audit trail.</p>
+      <div class="grid">
+        <div class="card"><h3>Bring the AI you already pay for</h3><p>Run agents on your own Claude Code, Goose, or Codex subscription — or plug in an Anthropic, OpenAI, or OpenRouter API key. Unlimited local agents on every plan.</p></div>
+        <div class="card"><h3>Scoped like a person</h3><p>Agents see only the channels they're invited to. No permission-flag soup — the same identity model as everyone else on the team.</p></div>
+        <div class="card"><h3>Real tools, real work</h3><p>Agents open repos, send patches, review code, edit canvases, run workflows, and page the person who shipped the last fix.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="wrap">
+      <h2>Per-seat pricing. Your tokens stay yours.</h2>
+      <p class="lead">Every plan includes unlimited local agents on your own AI subscription. We charge for the workspace, not the intelligence.</p>
+      <div class="pricing">
+        <div class="price-card">
+          <h3>Trial</h3>
+          <div class="price">$0<span> / 14 days</span></div>
+          <ul>
+            <li>Full Team features</li>
+            <li>No card required</li>
+            <li>Hosted workspace on your own subdomain</li>
+            <li>Unlimited local agents, bring your own AI</li>
+          </ul>
+          <a class="btn" href="#download" data-checkout="trial">Start free</a>
+        </div>
+        <div class="price-card featured">
+          <h3>Team</h3>
+          <div class="price">$24<span> / seat / month</span></div>
+          <ul>
+            <li>Everything in Trial</li>
+            <li>Unlimited message &amp; git history</li>
+            <li>Workflows with approval gates</li>
+            <li>Voice huddles with agents</li>
+            <li>Priority email support</li>
+          </ul>
+          <a class="btn primary" href="#" data-checkout="team">Choose Team</a>
+        </div>
+        <div class="price-card">
+          <h3>Business</h3>
+          <div class="price">$48<span> / seat / month</span></div>
+          <ul>
+            <li>Everything in Team</li>
+            <li>SSO / SAML via WorkOS</li>
+            <li>Audit log export</li>
+            <li>Priority support with SLA</li>
+          </ul>
+          <a class="btn" href="#" data-checkout="business">Choose Business</a>
+        </div>
+      </div>
+      <p style="margin-top:22px;color:var(--muted);font-size:13.5px">Need SCIM, dedicated infrastructure, or a contract? <a href="mailto:sales@hireshelby.com">Talk to sales</a>.</p>
+    </div>
+  </section>
+
+  <section id="download">
+    <div class="wrap">
+      <h2>Download HireShelby</h2>
+      <p class="lead">The desktop app is free. Sign in, connect your workspace, and bring your team.</p>
+      <div class="dl">
+        <a href="https://github.com/TayoAki/hireshelbyV2/releases/latest"><span>macOS</span><small>.dmg — Apple Silicon &amp; Intel</small></a>
+        <a href="https://github.com/TayoAki/hireshelbyV2/releases/latest"><span>Windows</span><small>.exe installer, 64-bit</small></a>
+        <a href="https://github.com/TayoAki/hireshelbyV2/releases/latest"><span>Linux</span><small>.AppImage / .deb</small></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>© 2026 HireShelby · <a href="mailto:support@hireshelby.com">Support</a> · <a href="mailto:security@hireshelby.com">Security</a></div>
+    <div>Built on the Apache-2.0 <a href="https://github.com/block/buzz" rel="noopener">Buzz</a> project by Block, Inc. Not affiliated with or endorsed by Block.</div>
+  </div>
+</footer>
+
+<script>
+  // Checkout entry. The control plane creates a hosted Stripe Checkout
+  // Session (POST /v1/billing/checkout) and returns its URL; until the user is
+  // signed in with a community, the buttons route through app download +
+  // in-app upgrade instead. window.HIRESHELBY_ACCOUNTS_URL is injected at
+  // deploy time.
+  const ACCOUNTS = window.HIRESHELBY_ACCOUNTS_URL || "https://accounts.hireshelby.com";
+  document.querySelectorAll("[data-checkout]").forEach((el) => {
+    el.addEventListener("click", (ev) => {
+      const tier = el.getAttribute("data-checkout");
+      if (tier === "trial") return; // anchor to #download
+      ev.preventDefault();
+      // Signed-out visitors: the checkout session requires an owned community,
+      // so the honest path is download → create workspace → upgrade in-app.
+      window.location.hash = "download";
+      // Deploy note: when a session cookie/bridge exists, replace with:
+      // fetch(`${ACCOUNTS}/v1/billing/checkout`, {method:"POST", ...}).then(r=>r.json()).then(({url})=>location=url)
+    });
+  });
+</script>
+
+</body>
+</html>

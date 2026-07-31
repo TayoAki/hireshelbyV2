@@ -77,6 +77,9 @@ fn router(state: Arc<AppState>) -> Router {
         .route("/v1/auth/me", get(auth::me))
         .route("/v1/auth/logout", post(auth::logout))
         .route("/v1/billing/webhook", post(billing::webhook))
+        .route("/v1/billing/checkout", post(billing::checkout))
+        .route("/v1/billing/portal", post(billing::portal))
+        .route("/v1/quota/seats", post(api::quota_seats))
         .route("/v1/communities", post(api::create_community))
         // The desktop calls list as POST with an empty body; GET kept for curl.
         .route(

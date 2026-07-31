@@ -92,6 +92,9 @@ Desktop platform capabilities (in `src-tauri`):
 | `GET /v1/nostr-identities/current` | Bound identity for the session | **built this session** |
 | `POST /v1/nostr-identities/delete` | Unbind | **built this session** |
 | `POST /v1/billing/webhook` | Stripe webhooks (idempotent) → plan updates | **built this session** |
+| `POST /v1/billing/checkout` | Hosted Stripe Checkout session → `{url}` | **built this session** |
+| `POST /v1/billing/portal` | Hosted Stripe Customer Portal → `{url}` | **built this session** |
+| `POST /v1/quota/seats` | Host-keyed seat check the relay enforces against | **built this session** |
 | WorkOS token exchange | Production login completion | **built this session** |
 | Plans & quotas | trial/team/business/enterprise; pooled agent-hours; fail-soft | shipped |
 
@@ -120,9 +123,9 @@ Desktop platform capabilities (in `src-tauri`):
 
 - Per-seat pricing; pooled cloud-agent-hour allowance; trial (14-day, no card) — designed; seat enforcement shipped
 - Stripe: checkout, portal, tax, webhooks — webhook endpoint **built this session**; checkout/portal wiring on hireshelby.com — planned
-- Relay-side quota enforcement at tenant bind — planned (B3)
+- Relay-side quota enforcement (B3): member adds + invite claims ask the control plane; fail-soft — **built this session**
 - Code signing (Apple + Authenticode), release publishing — planned (C2)
-- hireshelby.com (marketing, signup, download) — planned (Phase D, seeded from licensed Polaris)
+- hireshelby.com: static marketing/pricing/download site in `site/` — **built this session** (checkout bridge pending sign-in on web)
 - Included AI ("AI in Business tier" via provider with resale rights; GLM-5 self-host at volume) — planned (Phase E)
 
 ---
