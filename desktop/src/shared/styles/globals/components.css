@@ -213,8 +213,12 @@
     /* Bottom stop of the onboarding shell gradient; also the docked-footer
        scrim color so content scrolling under the CTA fades into the page. */
     --buzz-onboarding-shell-bottom: #1c2432;
-    /* Label color for the primary onboarding CTA (light blue on the dark pill). */
-    --buzz-onboarding-cta-label: #63b3ed;
+    /* Label colour for the in-step primary CTA. The pill itself has no
+       background of its own — it takes the Button `default` variant's
+       `bg-primary`, which in this theme is 205 79% 66% (#63b3ed). So the label
+       must be the DARK ink, not the blue: setting it to #63b3ed painted the
+       text in the pill's own colour and the CTA rendered blank. */
+    --buzz-onboarding-cta-label: #0d1117;
     /* Olive ink for the backup step's private key and its "never share" caption,
        reading against the fuzzy-white key frame. */
     --buzz-onboarding-backup-ink: #63b3ed;

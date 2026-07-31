@@ -23,6 +23,17 @@ const OUTSET = 96;
 const CAPTURE_SIZE = CARD_SIZE + OUTSET * 2;
 const DPR = 2;
 
+// Surface colour baked into the asset. The texture is an opaque image, not a
+// tintable mask, so the card's colour is fixed at generation time.
+//
+// Originally white, which suited the light chartreuse onboarding it was drawn
+// for. The HireShelby onboarding is unconditionally dark, and every
+// `variant="textured"` usage is inside `.buzz-onboarding-neutral-theme`, so
+// this is baked one shade LIGHTER than that theme's `--background`
+// (215 28% 7%) to read as a raised surface against it. White here renders
+// near-white `text-foreground` invisible.
+const SURFACE = process.env.CARD_TEXTURE_SURFACE ?? "#1e2937";
+
 // Approved texture parameters, archived from the former runtime SVG filter.
 const BLUR = 66;
 const DILATE = Math.round(BLUR * 0.85);
@@ -48,7 +59,7 @@ try {
       #core {
         position: absolute;
         inset: ${OUTSET + BLUR / 2}px;
-        background: white;
+        background: ${SURFACE};
         filter: blur(${BLUR / 3}px);
       }
     </style>
@@ -71,19 +82,30 @@ try {
             <feComponentTransfer in="dithered" result="specks">
               <feFuncA type="linear" slope="${SLOPE}" intercept="0" />
             </feComponentTransfer>
-            <feFlood flood-color="white" result="white" />
-            <feComposite in="white" in2="specks" operator="in" />
+            <feFlood flood-color="${SURFACE}" result="surface" />
+            <feComposite in="surface" in2="specks" operator="in" />
           </filter>
         </defs>
         <rect x="${OUTSET}" y="${OUTSET}" width="${CARD_SIZE}" height="${CARD_SIZE}"
-              fill="white" filter="url(#texture)" />
+              fill="${SURFACE}" filter="url(#texture)" />
       </svg>
       <span id="core"></span>
     </div>`);
 
-  await page.locator("#stage").screenshot({
+  // Clip the viewport rather than screenshotting the #stage locator. Same
+  // region — the stage is pinned at the origin and exactly fills the viewport
+  // — but locator.screenshot() first waits for the element to be "stable",
+  // and the blurred, filtered stage never satisfies that check, so it timed
+  // out after 30s instead of producing an asset.
+  // Rasterising the filter chain is genuinely slow — feMorphology at radius
+  // ~56 over a 1664² surface, then a 66px blur and 3-octave turbulence — and
+  // comfortably exceeds Playwright's 30s default on a normal machine. This is
+  // a one-shot asset build, so give it room rather than shrinking the filter.
+  await page.screenshot({
+    clip: { height: CAPTURE_SIZE, width: CAPTURE_SIZE, x: 0, y: 0 },
     omitBackground: true,
     path: OUTPUT,
+    timeout: 600_000,
   });
 } finally {
   await browser.close();
