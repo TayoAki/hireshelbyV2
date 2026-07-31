@@ -245,9 +245,10 @@ packaging. Phase 4 is expansion.
 
 ## 6. Open questions
 
-- Pricing: per-seat, per-community, or hybrid? Needs a decision before Phase 2
-  schema work.
-- Self-host tier: offer a free self-hosted edition (drives adoption, Apache-2.0
-  already permits it) or hosted-only?
+- ~~Pricing model~~ **Decided: per-seat**, with a pooled cloud-agent-hour
+  allowance. See `hireshelby-cloud-agents.md`.
+- ~~Self-host tier~~ **Decided: hosted only, no self-host tier.** Note this is a
+  go-to-market choice, not a technical one: the code is Apache-2.0 and public,
+  so self-hosting cannot be prevented, only left unsupported and unsold.
 - Do we keep `mesh-llm` shared compute as a differentiator, or cut it to reduce
   surface area?

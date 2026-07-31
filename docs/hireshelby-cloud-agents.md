@@ -97,11 +97,22 @@ customers getting the most value.
 
 | Tier | Price | Cloud agent hours (pooled/mo) | Notes |
 |---|---|---|---|
-| **Self-host** | Free | 0 | Apache-2.0, run your own relay. Unlimited local agents. Drives adoption. |
+| **Trial** | Free, 14 days | 10 total | No card. Full Team features. Converts or expires. |
 | **Team** | $24/seat/mo | 15 × seats | Hosted relay, unlimited local agents |
 | **Business** | $48/seat/mo | 40 × seats | SSO/SAML, audit export, priority support |
 | **Enterprise** | Contract | Negotiated | SLA, dedicated infra, SCIM |
 | **Overage** | $0.60/agent-hour | — | Hard cap + alert, opt-in to exceed |
+
+**No self-hosted tier** — hosted only. Two consequences to be honest about:
+
+1. **This is a go-to-market decision, not a technical restriction.** The code is
+   Apache-2.0 and the repository is public, so anyone *may* self-host and we
+   cannot prevent it. What we control is what we *support, document, and sell*.
+   Choosing not to ship a self-host tier means no install docs, no community
+   support burden, and no free path that competes with the paid product.
+2. **It removes the top-of-funnel.** A free self-host tier would have driven
+   adoption. The 14-day no-card trial replaces it. Expect to spend more on
+   marketing than an open-core competitor would.
 
 Unit economics at Team, $24/seat:
 
@@ -161,6 +172,89 @@ breach-severity exposure and should be treated as such.
 
 ---
 
+## 5b. Open-source reference implementations
+
+We are building "Cloud9, but the workload is an agent instead of an IDE." That
+problem is solved in public several times over. **License decides which ones we
+may borrow code from and which we may only read.**
+
+| Project | License | Stars | Use for us |
+|---|---|---|---|
+| **e2b-dev/infra** | **Apache-2.0** | 1.3k | ⭐ **Closest match.** The actual infrastructure behind E2B Cloud — Firecracker-based agent sandboxes as a service. Permissive, so we may vendor. |
+| **OpenHands** | **MIT** | 82.6k | ⭐ Best agent-runtime architecture; MIT means we may borrow code |
+| **e2b-dev/E2B** | Apache-2.0 | 13.2k | SDK + sandbox surface |
+| **firecracker** | Apache-2.0 | 35.8k | The microVM isolation primitive itself |
+| **kata-containers** | Apache-2.0 | 8.4k | Alternative VM-isolated container runtime |
+| **code-server** | MIT | 78.6k | If we ever want a browser IDE surface |
+| **devpod** | MPL-2.0 | 15k | Weak copyleft, file-level. Usable, but keep modifications isolated. |
+| **coder/coder** | ⚠️ **AGPL-3.0** | 14k | **Architecture reference only — do not vendor** |
+| **gitpod** | ⚠️ **AGPL-3.0** | 13.7k | Same restriction |
+| **daytonaio/daytona** | ⚠️ **Not clearly stated** | 72k | Avoid until legal clarifies. GitHub detects no SPDX license. |
+
+### The AGPL trap
+
+Coder is the most tempting reference — it is literally "self-hosted Cloud9 with
+agent support," and its tagline is now *"secure environments for developers and
+their agents."* It is also **AGPL-3.0**, which is viral *over network use*:
+offering a modified version as a hosted service obligates us to release our
+source to users. That would end the commercial model.
+
+We may legally: read it, and reimplement the architecture (architecture and
+ideas are not copyrightable), or deploy it **unmodified** as a separate service.
+We may not: copy its code into HireShelby. Same for Gitpod.
+
+Daytona has 72k stars and is squarely in this space, but GitHub detects no
+standard license and the README does not name one. Unclear license means
+*do not build on it* until counsel says otherwise.
+
+### The architecture both Coder and OpenHands converged on
+
+Independently, both split the same way — which is a strong signal it is correct:
+
+```
+Control plane                          Workspace / sandbox
+─────────────                          ───────────────────
+REST API + dashboard                   isolated compute unit
+Postgres (metadata, quota)     ◄────►  an *agent* inside it that
+provisioner (what to create)           phones home over a tunnel
+idle detection → auto-shutdown         the actual workload
+```
+
+- **Coder**: control-plane daemon + Postgres; Terraform templates define the
+  workspace (K8s pod, Docker container, or EC2 VM); an agent runs *inside* each
+  workspace; WireGuard tunnel; idle workspaces auto-shutdown to control spend.
+- **OpenHands**: a controller process managing the agent loop and sandbox
+  lifecycle, plus a per-task container running an action server; controller
+  talks to sandbox over a socket. Pluggable backends — Local, Docker, Remote,
+  with E2B / Modal / Daytona plugins. An in-flight proposal adds a QEMU microVM
+  backend for hardware-level isolation without a Docker daemon.
+
+**This maps onto HireShelby almost one-to-one, and we already own the hard half:**
+
+| Their layer | Our equivalent | Status |
+|---|---|---|
+| Control plane / controller | `hireshelby-accounts` + agent-runtime service | **To build** (Phase 1 + 4a) |
+| Metadata + quota store | Postgres (already the relay's store) | Exists |
+| Agent inside the workspace | **`buzz-acp`** — headless, env-configured | **Already exists** |
+| Tunnel back to control plane | WebSocket to `buzz-relay` | **Already exists** |
+| Idle shutdown | `BUZZ_ACP_IDLE_TIMEOUT` (900s default) | **Already exists** |
+| Pluggable sandbox backends | `AgentRuntime` trait | To build |
+
+The piece everyone else had to invent — an agent process that runs in a sandbox
+and maintains a live connection back to the platform — is the piece we inherited
+for free.
+
+### Concrete borrowing plan
+
+1. **Steal the controller/sandbox split from OpenHands (MIT).** Specifically its
+   pluggable-runtime interface, which is the proven shape for our `AgentRuntime`
+   trait, and its Remote runtime for fleet-scale deployment.
+2. **Read e2b-dev/infra (Apache-2.0) for the Firecracker orchestration** —
+   microVM lifecycle, snapshotting, fast cold start. This is the part that is
+   genuinely hard and where a working permissive implementation saves months.
+3. **Copy Coder's *ideas* only** — declarative workspace templates, agent-inside-
+   workspace, auto-shutdown-on-idle. Do not read-then-write its code.
+
 ## 6. Build plan
 
 Slots in as **Phase 4a** of the main plan — after billing exists, before the web client.
@@ -216,3 +310,6 @@ upgrade path.
 - Devin / Cognition ACU pricing: [Lindy](https://www.lindy.ai/blog/devin-pricing), [UsagePricing](https://www.usagepricing.com/blueprint/cognition), [usecarly](https://www.usecarly.com/blog/devin-pricing/)
 - GitHub Copilot usage-based billing: [GitHub Blog](https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/), [UsageBox](https://usagebox.com/articles/github-copilot-usage-based-billing-2026)
 - Sandbox infrastructure pricing: [Northflank](https://northflank.com/blog/ai-sandbox-pricing), [AgenticWire](https://www.agenticwire.news/article/e2b-vs-modal-agent-sandbox-cost-comparison), [AgentMarketCap](https://agentmarketcap.ai/blog/2026/04/07/ai-agent-sandbox-infrastructure-e2b-modal-daytona-fly-machines-secure-code-execution)
+- OpenHands runtime architecture: [docs](https://docs.openhands.dev/openhands/usage/architecture/runtime), [microVM backend proposal](https://github.com/OpenHands/OpenHands/issues/13203)
+- Coder architecture: [docs](https://coder.com/docs/about), [github.com/coder/coder](https://github.com/coder/coder)
+- Licenses verified via the GitHub API against each repository on 2026-07-31.
