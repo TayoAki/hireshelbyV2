@@ -1,0 +1,23 @@
+# MinIO with the media bucket pre-created, for platforms without compose's
+# depends_on/one-shot init containers (Railway, Fly, plain `docker run`).
+#
+# Image versions are pinned to the same releases deploy/compose/compose.yml
+# uses, so this deploys the object-store the relay is actually tested against.
+# That matters: the relay's git store writes packs with `If-None-Match: *` and
+# refuses to boot if the backend's conditional-write semantics don't conform.
+#
+# Build from the repository root:
+#   docker build -f Dockerfile.minio -t hireshelby-minio .
+
+FROM minio/mc:RELEASE.2025-08-13T08-35-41Z AS mc
+
+FROM minio/minio:RELEASE.2025-09-07T16-13-09Z
+
+COPY --from=mc /usr/bin/mc /usr/bin/mc
+COPY deploy/railway/minio-entrypoint.sh /usr/local/bin/minio-entrypoint.sh
+RUN chmod +x /usr/local/bin/minio-entrypoint.sh
+
+# 9000: S3 API  ·  9001: console
+EXPOSE 9000 9001
+
+ENTRYPOINT ["/usr/local/bin/minio-entrypoint.sh"]
