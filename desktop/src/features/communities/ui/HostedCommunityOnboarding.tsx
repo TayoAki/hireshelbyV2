@@ -276,7 +276,7 @@ export function HostedCommunityOnboarding({
     const retryPrefix = created ? "The community was created, but " : "";
     if (!relayUrl) {
       throw new Error(
-        `${retryPrefix}Accounts did not return its relay address. Try connecting it again, or contact support if it does not appear in your communities.`,
+        `${retryPrefix}HireShelby did not return its relay address. Try connecting it again, or contact support if it does not appear in your communities.`,
       );
     }
     if (
