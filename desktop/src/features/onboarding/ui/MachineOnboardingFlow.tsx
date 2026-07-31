@@ -11,7 +11,7 @@ import { StartupWindowDragRegion } from "@/shared/ui/StartupWindowDragRegion";
 import { BackupStep } from "./BackupStep";
 import { DefaultConfigStep } from "./DefaultConfigStep";
 import { IdentityKeyHelpDialog } from "./IdentityKeyHelpDialog";
-import { LandingBees } from "./LandingBees";
+import { LandingParticles } from "./LandingParticles";
 import { NostrKeyImportForm } from "./NostrKeyImportForm";
 import {
   ONBOARDING_LANDING_CTA_CLASS,
@@ -133,7 +133,7 @@ export function MachineOnboardingFlow({
       data-testid="machine-onboarding-gate"
     >
       <StartupWindowDragRegion />
-      {page === "identity" ? <LandingBees /> : null}
+      {page === "identity" ? <LandingParticles /> : null}
       {page !== "identity" ? (
         <OnboardingChrome
           current={page === "config" ? 4 : page === "setup" ? 3 : 2}
@@ -152,12 +152,15 @@ export function MachineOnboardingFlow({
               effect="mask-reveal-up"
               transitionKey="machine-identity"
             >
-              <img
-                alt="HireShelby"
-                className="w-full max-w-[600px]"
-                src="/landing/buzz-wordmark.png"
-              />
-              <p className="mt-2 max-w-[560px] text-center text-2xl font-normal leading-none text-foreground">
+              {/* Live text, not a raster wordmark: the previous asset was a
+                  fixed black "Buzz" PNG, which the dark onboarding field would
+                  have swallowed. `text-foreground` tracks the theme, the type
+                  stays crisp at any density, and this finally gives the landing
+                  page a real <h1>. */}
+              <h1 className="max-w-full text-[clamp(3rem,10vw,5.5rem)] font-semibold leading-none tracking-tight text-foreground">
+                HireShelby
+              </h1>
+              <p className="mt-5 max-w-[560px] text-center text-2xl font-normal leading-none text-foreground">
                 Your people, your agents, your projects —<br />
                 all in one place.
               </p>

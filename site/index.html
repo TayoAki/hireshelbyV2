@@ -35,6 +35,12 @@
     .hero p.sub { color: var(--muted); font-size: 19px; max-width: 640px; margin: 0 auto 32px; }
     .hero .cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
     .hero .note { margin-top: 14px; color: var(--muted); font-size: 13px; }
+    /* Product shot: capped so it never outgrows the copy above it, and the
+       aspect-ratio + width/height attrs reserve the box so the hero text
+       doesn't jump when the image lands. */
+    .hero .shot { display: block; width: 100%; max-width: 1040px; aspect-ratio: 1600 / 840;
+      margin: 56px auto 0; border-radius: 14px; border: 1px solid var(--line);
+      box-shadow: 0 24px 70px rgba(0,0,0,.5); }
 
     section { padding: 72px 0; border-top: 1px solid var(--line); }
     h2 { font-size: 30px; letter-spacing: -0.02em; margin-bottom: 10px; }
@@ -98,6 +104,11 @@
         <a class="btn big" href="#download">Download the app</a>
       </div>
       <div class="note">Bring your own Claude, OpenAI, or OpenRouter — we never charge you for tokens.</div>
+      <img class="shot" src="/img/hero.jpg"
+           srcset="/img/hero-800.jpg 800w, /img/hero.jpg 1600w"
+           sizes="(max-width: 900px) 100vw, 1040px"
+           width="1600" height="840" loading="eager" decoding="async"
+           alt="A HireShelby workspace: channels and threads on the left, a conversation in the centre, and agent and workflow panels on the right.">
     </div>
   </div>
 

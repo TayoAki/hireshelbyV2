@@ -1,57 +1,34 @@
-import { useId } from "react";
-
 /**
- * The finished HireShelby mark as a plain static SVG — no SMIL, no scripting, no
- * animation machinery. Geometry matches the final keyframe of the
- * BuzzLogoAnimation morph (v8 variant), rendered in `currentColor`, so it
+ * The HireShelby mark as a plain static SVG — no SMIL, no scripting, no
+ * animation machinery. Rendered in `currentColor` so it tints per-theme, and it
  * paints complete on the very first frame regardless of animation support.
+ *
+ * This previously drew the upstream bee silhouette — two wing circles and a
+ * slotted body masked together, which is Block's logo. The geometry *was* the
+ * branding, so it was replaced outright rather than recolored.
  */
 export function BuzzMark({ className }: { className?: string }) {
-  const maskId = `buzz-mark-cutouts-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-
   return (
     <svg
       aria-hidden="true"
       className={["buzz-mark", className].filter(Boolean).join(" ")}
-      viewBox="0 0 466 309"
-      fill="currentColor"
+      viewBox="0 0 64 64"
+      fill="none"
     >
-      <defs>
-        <mask
-          id={maskId}
-          x="-80"
-          y="-80"
-          width="626"
-          height="469"
-          maskUnits="userSpaceOnUse"
-          maskContentUnits="userSpaceOnUse"
-        >
-          <rect x="-80" y="-80" width="626" height="469" fill="#fff" />
-          <ellipse cx="193.3" cy="84.4" rx="27" ry="27" fill="#000" />
-          <ellipse cx="276" cy="84.4" rx="27" ry="27" fill="#000" />
-          <rect
-            x="166.3"
-            y="157.2"
-            width="136.9"
-            height="38.3"
-            rx="5"
-            fill="#000"
-          />
-          <rect
-            x="166.9"
-            y="235.1"
-            width="136.2"
-            height="37.6"
-            rx="5"
-            fill="#000"
-          />
-        </mask>
-      </defs>
-      <g mask={`url(#${maskId})`}>
-        <circle cx="91.7" cy="154.5" r="91.7" />
-        <circle cx="374.3" cy="154.5" r="91.7" />
-        <rect x="128" y="0" width="210" height="309" rx="34" />
-      </g>
+      <rect width="64" height="64" rx="14" fill="currentColor" />
+      <text
+        x="32"
+        y="34"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontFamily="ui-sans-serif, -apple-system, 'Segoe UI', sans-serif"
+        fontSize="28"
+        fontWeight="700"
+        letterSpacing="-0.5"
+        fill="var(--buzz-onboarding-shell-bottom, #0d1117)"
+      >
+        HS
+      </text>
     </svg>
   );
 }

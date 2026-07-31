@@ -65,7 +65,6 @@ import {
   listenForDeepLinks,
 } from "@/shared/deep-link";
 import { cn } from "@/shared/lib/cn";
-import { BuzzMark } from "@/shared/ui/buzz-logo/BuzzMark";
 import { FlappingBee } from "@/shared/ui/buzz-logo/FlappingBee";
 import { FuzzyLogo } from "@/shared/ui/buzz-logo/FuzzyLogo";
 import { StartupWindowDragRegion } from "@/shared/ui/StartupWindowDragRegion";
@@ -74,8 +73,8 @@ const LOADING_TEXT = "Setting up your community...";
 
 // Minimum time the cold-boot splash stays on screen. A real boot resolves the
 // community in well under 100ms, and the native window setup plus first paint
-// can take longer than that — without a hold, the bee is unmounted before it is
-// ever visible. The hold runs as an overlay above the already-mounted app, so
+// can take longer than that — without a hold, the mark is unmounted before it
+// is ever visible. The hold runs as an overlay above the already-mounted app, so
 // time-to-interactive is unchanged; only the reveal waits.
 const BOOT_SPLASH_MIN_VISIBLE_MS = 1_200;
 const BOOT_SPLASH_FADE_MS = 200;
@@ -131,12 +130,12 @@ function useBootSplashHold(): BootSplashPhase {
   return phase;
 }
 
-// Animated HireShelby mark for the loading gates. The static BuzzMark renders in
-// normal flow and sizes the box — it's plain SVG (no JS/SMIL), so it paints on
-// the very first frame even before scripting starts, avoiding a blank flash on
-// hard reload. The animated FuzzyLogo is layered on top and takes over once it
-// begins playing.
-function BeeLoader({
+// HireShelby mark for the loading gates. This used to layer an animated Buzz
+// wordmark morph over a static mark that sized the box and covered the frames
+// before scripting started. The rebranded mark is a single plain SVG (no
+// JS/SMIL), so it paints complete on the very first frame on its own — the
+// second layer would now just draw the same glyph twice.
+function MarkLoader({
   ariaLabel,
   className,
   tintClassName = "text-foreground",
@@ -147,22 +146,19 @@ function BeeLoader({
 }) {
   return (
     <div className={cn("relative", tintClassName, className)}>
-      <BuzzMark className="block h-auto w-full" />
       <FuzzyLogo
         ariaLabel={ariaLabel}
-        className="absolute inset-0 h-full! w-full! [&>svg]:h-full [&>svg]:w-full [&>svg]:max-w-full"
-        fuzz
+        className="block h-auto w-full"
+        fuzz={false}
         loop
-        loopRestSeconds={0}
       />
     </div>
   );
 }
 
 // Cold boot gate: the theme-adaptive grainient background with a single
-// centered HireShelby bee flying over it — the same static mark as before, now with
-// its wings flapping (ported from the HireShelby website's wing-flap). Replaces the
-// old "Setting up your community" text, which stays as an sr-only caption.
+// centered HireShelby mark pulsing over it. Replaces the old "Setting up your
+// community" text, which stays as an sr-only caption.
 function AppLoadingGate() {
   return (
     <div
@@ -197,7 +193,7 @@ function CommunitySwitchGate() {
       <StartupWindowDragRegion />
       <span className="sr-only">Switching community…</span>
       {showSpinner ? (
-        <BeeLoader
+        <MarkLoader
           ariaLabel="Switching community…"
           className="h-auto w-20"
           tintClassName="text-muted-foreground"
@@ -499,7 +495,7 @@ function CommunityApp({
   const isEnteringCurtain = transaction?.stage === "entering";
 
   // The app mounts (and starts loading data) beneath the splash overlay; the
-  // overlay just keeps the bee on screen long enough to be seen, then fades.
+  // overlay just keeps the mark on screen long enough to be seen, then fades.
   // Community switches keep their quiet gate.
   const showBootSplashOverlay =
     bootSplashPhase !== "done" && !isCommunitySwitch;

@@ -2171,22 +2171,22 @@ function resetMockPersonas(config?: E2eConfig) {
   const activePersonaIds = new Set(config?.mock?.activePersonaIds ?? []);
   const builtInPersonas = [
     {
-      id: "builtin:fizz",
-      display_name: "Fizz",
+      id: "builtin:shelby",
+      display_name: "Shelby",
       avatar_url: null,
-      system_prompt: "You are Fizz.",
+      system_prompt: "You are Shelby.",
     },
     {
-      id: "builtin:honey",
-      display_name: "Honey",
+      id: "builtin:ada",
+      display_name: "Ada",
       avatar_url: null,
-      system_prompt: "You are Honey.",
+      system_prompt: "You are Ada.",
     },
     {
-      id: "builtin:bumble",
-      display_name: "Bumble",
+      id: "builtin:miles",
+      display_name: "Miles",
       avatar_url: null,
-      system_prompt: "You are Bumble.",
+      system_prompt: "You are Miles.",
     },
   ];
   mockPersonas = builtInPersonas.map((persona) => ({
@@ -10142,7 +10142,7 @@ export function maybeInstallE2eTauriMocks() {
           commit_body: [
             "See the [project guide](https://example.com/project-guide).",
             "",
-            "![Architecture](/buzz.svg)",
+            "![Architecture](/hireshelby.svg)",
             "",
             "![Demo](https://example.com/project-demo.mp4)",
           ].join("\n"),

@@ -58,7 +58,7 @@ test("upsertCachedChannel_replacesExistingChannelWithoutDuplicates", () => {
 test("upsertCachedChannelMember_doesNotDecorateImmutableDmSource", () => {
   const charliePubkey = "charlie-pubkey";
   const ownerPubkey = "owner-pubkey";
-  const fizzPubkey = "fizz-pubkey";
+  const fizzPubkey = "shelby-pubkey";
   const openedDm = makeChannel("new-dm", "DM", "dm", {
     participantPubkeys: [charliePubkey, ownerPubkey],
     participants: ["charlie", "owner"],
@@ -66,19 +66,19 @@ test("upsertCachedChannelMember_doesNotDecorateImmutableDmSource", () => {
 
   const channels = upsertCachedChannelMember([openedDm], openedDm.id, {
     membershipAdded: true,
-    name: "Fizz",
+    name: "Shelby",
     pubkey: fizzPubkey,
   });
   assert.deepEqual(channels, [openedDm]);
 });
 
 test("upsertCachedChannelMember_recordsStreamMemberBeforeRefetch", () => {
-  const fizzPubkey = "fizz-pubkey";
+  const fizzPubkey = "shelby-pubkey";
   const channel = makeChannel("general", "General");
 
   const channels = upsertCachedChannelMember([channel], channel.id, {
     membershipAdded: true,
-    name: "Fizz",
+    name: "Shelby",
     pubkey: fizzPubkey,
   });
 
@@ -89,14 +89,14 @@ test("upsertCachedChannelMember_recordsStreamMemberBeforeRefetch", () => {
 test("reconcileRefreshedCachedChannel_restoresOpenedDmAfterStaleRefresh", () => {
   const charliePubkey = "charlie-pubkey";
   const ownerPubkey = "owner-pubkey";
-  const fizzPubkey = "fizz-pubkey";
+  const fizzPubkey = "shelby-pubkey";
   const openedDm = makeChannel("new-dm", "DM", "dm", {
     participantPubkeys: [charliePubkey, ownerPubkey],
     participants: ["charlie", "owner"],
   });
   const expandedDm = makeChannel("expanded-dm", "Group DM", "dm", {
     participantPubkeys: [charliePubkey, ownerPubkey, fizzPubkey],
-    participants: ["charlie", "owner", "Fizz"],
+    participants: ["charlie", "owner", "Shelby"],
   });
 
   const reconciled = reconcileRefreshedCachedChannel([openedDm], expandedDm);

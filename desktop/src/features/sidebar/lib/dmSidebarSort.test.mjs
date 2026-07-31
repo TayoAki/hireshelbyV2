@@ -35,7 +35,7 @@ test("sorts direct messages by resolved display label", () => {
       makeDm("b", "Group DM (3)"),
     ],
     {
-      a: "Fizz",
+      a: "Shelby",
       b: "Brain",
       c: "Wes",
     },

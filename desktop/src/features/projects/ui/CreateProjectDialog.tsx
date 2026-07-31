@@ -140,7 +140,7 @@ export function CreateProjectDialog({
                   setName(event.target.value);
                   setErrorMessage(null);
                 }}
-                placeholder="bee-garden-game"
+                placeholder="my-project"
                 ref={nameInputRef}
                 spellCheck={false}
                 value={name}
@@ -205,7 +205,7 @@ export function CreateProjectDialog({
                   setCloneUrl(event.target.value);
                   setErrorMessage(null);
                 }}
-                placeholder="https://relay.example.com/git/bee-garden-game.git"
+                placeholder="https://relay.example.com/git/my-project.git"
                 spellCheck={false}
                 value={cloneUrl}
               />

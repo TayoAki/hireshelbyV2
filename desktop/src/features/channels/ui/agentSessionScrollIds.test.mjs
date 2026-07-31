@@ -9,8 +9,10 @@
  *
  * Corrective action 3 (ordered DOM parity) — NAMED RESIDUAL:
  *  AgentSessionTranscriptList cannot render under node:test — the component
- *  tree transitively imports a .css file (BuzzLogoAnimation.tsx →
- *  buzz-logo-animation.css) and the test-loader has no CSS stub. The
+ *  tree transitively imports a .css file and the test-loader has no CSS
+ *  stub. (The specific offender named here, BuzzLogoAnimation.tsx →
+ *  buzz-logo-animation.css, was deleted in the HireShelby rebrand; whether
+ *  any importer remains has not been re-checked.) The
  *  underlying invariant (outer-derived ids = inner data-message-id) is
  *  structurally guaranteed by both sides calling the same exported
  *  getDisplayBlockKey, but a full-component render test would additionally
@@ -425,8 +427,8 @@ test("stabilization chain: production helper → useStableArrayShallow → same 
 
 // ── Corrective action 3: ordered DOM parity — structural guarantee ──────────
 //
-// AgentSessionTranscriptList cannot render under node:test (CSS import blocker:
-// BuzzLogoAnimation.tsx → buzz-logo-animation.css). The test below verifies the
+// AgentSessionTranscriptList cannot render under node:test (CSS import
+// blocker). The test below verifies the
 // structural guarantee: both sides (outer derivation + inner render) call the
 // SAME getDisplayBlockKey function, and the outer uses the SAME
 // buildTranscriptDisplayBlocks output. This cannot catch a block being filtered

@@ -13,9 +13,9 @@ type StageCharacter = {
 
 /** Same animated APNGs the "Meet your starter team" onboarding step uses. */
 const STAGE_CHARACTERS: readonly StageCharacter[] = [
-  { name: "Fizz", animationUrl: "/onboarding/starter-team/fizz.png" },
-  { name: "Honey", animationUrl: "/onboarding/starter-team/honey.png" },
-  { name: "Bumble", animationUrl: "/onboarding/starter-team/bumble.png" },
+  { name: "Shelby", animationUrl: "/onboarding/starter-team/shelby.png" },
+  { name: "Ada", animationUrl: "/onboarding/starter-team/ada.png" },
+  { name: "Miles", animationUrl: "/onboarding/starter-team/miles.png" },
 ];
 
 const STAGE_EXIT_ANIMATION = "motion-kickoff-stage-exit";
