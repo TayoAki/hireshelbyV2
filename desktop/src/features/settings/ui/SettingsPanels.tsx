@@ -6,7 +6,6 @@ import {
   Bot,
   Check,
   ChevronDown,
-  Cpu,
   Download,
   FlaskConical,
   Keyboard,
@@ -72,7 +71,6 @@ import { ChannelTemplatesSettingsCard } from "./ChannelTemplatesSettingsCard";
 import { HarnessesSettingsPanel } from "./HarnessesSettingsPanel";
 import { ExperimentalFeaturesCard } from "./ExperimentalFeaturesCard";
 import { KeyboardShortcutsCard } from "./KeyboardShortcutsCard";
-import { MeshComputeSettingsCard } from "@/features/mesh-compute/ui/MeshComputeSettingsCard";
 import { MobilePairingCard } from "./MobilePairingCard";
 import { ModerationQueueCard } from "./ModerationQueueCard";
 import { NotificationSettingsCard } from "./NotificationSettingsCard";
@@ -90,7 +88,6 @@ export type SettingsSection =
   | "experimental"
   | "agents"
   | "channel-templates"
-  | "compute"
   | "appearance"
   | "shortcuts"
   | "hosted-communities"
@@ -109,7 +106,6 @@ const SETTINGS_SECTION_VALUES: readonly SettingsSection[] = [
   "experimental",
   "agents",
   "channel-templates",
-  "compute",
   "appearance",
   "shortcuts",
   "hosted-communities",
@@ -183,11 +179,6 @@ export const settingsSections: SettingsSectionDescriptor[] = [
     label: "Templates",
     icon: LayoutTemplate,
     featureGate: "channel-templates",
-  },
-  {
-    value: "compute",
-    label: "Compute",
-    icon: Cpu,
   },
   {
     value: "shortcuts",
@@ -819,8 +810,6 @@ export function renderSettingsSection(
       );
     case "channel-templates":
       return <ChannelTemplatesSettingsCard />;
-    case "compute":
-      return <MeshComputeSettingsCard />;
     case "appearance":
       return <ThemeSettingsCard />;
     case "shortcuts":

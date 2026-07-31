@@ -12,9 +12,6 @@ mod key_backup;
 mod linux_media;
 mod managed_agents;
 mod media_proxy;
-#[cfg(feature = "mesh-llm")]
-mod mesh_llm;
-#[cfg(not(feature = "mesh-llm"))]
 mod mesh_llm_stubs;
 mod migration;
 #[cfg(test)]
@@ -59,7 +56,6 @@ use managed_agents::{
     restart_managed_agent_runtime, start_managed_agent_runtime, stop_managed_agent_runtime,
     try_regenerate_nest,
 };
-#[cfg(not(feature = "mesh-llm"))]
 use mesh_llm_stubs::*;
 #[cfg(all(feature = "mesh-llm", target_os = "macos"))]
 use shutdown::{hard_exit_after_mesh_shutdown, relaunch_after_mesh_shutdown};
