@@ -770,12 +770,12 @@ test("first-community owner can connect an existing hosted community", async ({
   await installMockBridge(
     page,
     {
-      builderlabAuth: {
+      accountsAuth: {
         email: "owner@example.com",
         expiresAt: "2099-01-01T00:00:00Z",
       },
-      builderlabIdentity: { pubkey_hex: BLANK_TYLER_IDENTITY.pubkey },
-      builderlabCommunities: [
+      accountsIdentity: { pubkey_hex: BLANK_TYLER_IDENTITY.pubkey },
+      accountsCommunities: [
         {
           id: "owned-community",
           name: "North Star",
@@ -976,12 +976,12 @@ test("first-community reports a created community without a relay address", asyn
   await installMockBridge(
     page,
     {
-      builderlabAuth: {
+      accountsAuth: {
         email: "owner@example.com",
         expiresAt: "2099-01-01T00:00:00Z",
       },
-      builderlabIdentity: { pubkey_hex: BLANK_TYLER_IDENTITY.pubkey },
-      builderlabCreatedCommunity: {
+      accountsIdentity: { pubkey_hex: BLANK_TYLER_IDENTITY.pubkey },
+      accountsCreatedCommunity: {
         id: "hosted-bee-lab",
         name: "bee-lab",
       },
@@ -999,7 +999,7 @@ test("first-community reports a created community without a relay address", asyn
   await expect(page.getByText("That address is available.")).toBeVisible();
   await page.getByRole("button", { name: "Next" }).click();
   await expect(page.getByRole("alert")).toContainText(
-    "The community was created, but Builderlab did not return its relay address.",
+    "The community was created, but HireShelby did not return its relay address.",
   );
   await expect(
     page.getByRole("heading", { name: "Build your profile" }),
@@ -1016,7 +1016,7 @@ test("first-community X cancels a pending sign-in", async ({ page }) => {
   }, BLANK_TYLER_IDENTITY.pubkey);
   await installMockBridge(
     page,
-    { builderlabLoginDelayMs: 5_000 },
+    { accountsLoginDelayMs: 5_000 },
     {
       relayWsUrl: "ws://localhost:3000",
       skipOnboardingSeed: true,
@@ -1037,7 +1037,7 @@ test("first-community X cancels a pending sign-in", async ({ page }) => {
   ).toBeVisible();
   await expect
     .poll(() => page.evaluate(() => window.__BUZZ_E2E_COMMANDS__ ?? []))
-    .toEqual(expect.arrayContaining(["cancel_builderlab_login"]));
+    .toEqual(expect.arrayContaining(["cancel_accounts_login"]));
 });
 
 test("first-community owner can replace a mismatched account identity", async ({
@@ -1053,11 +1053,11 @@ test("first-community owner can replace a mismatched account identity", async ({
   await installMockBridge(
     page,
     {
-      builderlabAuth: {
+      accountsAuth: {
         email: "old-owner@example.com",
         expiresAt: "2099-01-01T00:00:00Z",
       },
-      builderlabIdentity: { pubkey_hex: "f".repeat(64) },
+      accountsIdentity: { pubkey_hex: "f".repeat(64) },
     },
     {
       relayWsUrl: "ws://localhost:3000",
@@ -1083,8 +1083,8 @@ test("first-community owner can replace a mismatched account identity", async ({
     .poll(() => page.evaluate(() => window.__BUZZ_E2E_COMMANDS__ ?? []))
     .toEqual(
       expect.arrayContaining([
-        "delete_builderlab_nostr_identity",
-        "bind_builderlab_nostr_identity",
+        "delete_accounts_nostr_identity",
+        "bind_accounts_nostr_identity",
       ]),
     );
 });
@@ -1102,12 +1102,12 @@ test("first-community explains when the local identity belongs to another accoun
   await installMockBridge(
     page,
     {
-      builderlabAuth: {
+      accountsAuth: {
         email: "wrong-owner@example.com",
         expiresAt: "2099-01-01T00:00:00Z",
       },
-      builderlabIdentity: { pubkey_hex: "e".repeat(64) },
-      builderlabBindError: { code: "pubkey_already_bound" },
+      accountsIdentity: { pubkey_hex: "e".repeat(64) },
+      accountsBindError: { code: "pubkey_already_bound" },
     },
     {
       relayWsUrl: "ws://localhost:3000",
@@ -1123,7 +1123,7 @@ test("first-community explains when the local identity belongs to another accoun
     .click();
   await expect(
     page.getByText(
-      "This device's HireShelby identity belongs to a different Builderlab account and can't be moved from here. Sign out, then sign in with the account that already owns this identity.",
+      "This device's HireShelby identity belongs to a different HireShelby account and can't be moved from here. Sign out, then sign in with the account that already owns this identity.",
     ),
   ).toBeVisible();
   await expect(
@@ -1131,7 +1131,7 @@ test("first-community explains when the local identity belongs to another accoun
   ).toBeVisible();
 });
 
-test("back clears Builderlab auth before returning to first-community choices", async ({
+test("back clears Accounts auth before returning to first-community choices", async ({
   page,
 }) => {
   await seedActiveIdentity(page, BLANK_TYLER_IDENTITY);
@@ -1144,11 +1144,11 @@ test("back clears Builderlab auth before returning to first-community choices", 
   await installMockBridge(
     page,
     {
-      builderlabAuth: {
+      accountsAuth: {
         email: "owner@example.com",
         expiresAt: "2099-01-01T00:00:00Z",
       },
-      builderlabIdentity: { pubkey_hex: BLANK_TYLER_IDENTITY.pubkey },
+      accountsIdentity: { pubkey_hex: BLANK_TYLER_IDENTITY.pubkey },
     },
     {
       relayWsUrl: "ws://localhost:3000",

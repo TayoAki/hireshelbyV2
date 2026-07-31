@@ -19,7 +19,7 @@ import {
   HOSTED_COMMUNITY_SUFFIX as HOST_SUFFIX,
   hostedCommunityErrorMessage as errorMessage,
   hostedCommunityRelayUrl as relayUrl,
-  type BuilderlabAuth,
+  type AccountsAuth,
   type HostedCommunityAvailabilityResponse as AvailabilityResponse,
   type HostedCommunitiesResponse as CommunitiesResponse,
   type HostedCommunity,
@@ -67,7 +67,7 @@ export function HostedCommunitiesSettingsCard() {
   const onboarding = useCommunityOnboarding();
   const { activeCommunity } = useCommunities();
   const localPubkey = useIdentityQuery().data?.pubkey ?? null;
-  const [auth, setAuth] = React.useState<BuilderlabAuth | null>(null);
+  const [auth, setAuth] = React.useState<AccountsAuth | null>(null);
   const [communities, setCommunities] = React.useState<HostedCommunity[]>([]);
   const [identity, setIdentity] = React.useState<NostrIdentity | null>(null);
   const [name, setName] = React.useState("");
@@ -80,8 +80,8 @@ export function HostedCommunitiesSettingsCard() {
   const loadAccount = React.useCallback(async () => {
     setError(null);
     const [identityResponse, communitiesResponse] = await Promise.all([
-      invoke<IdentityResponse>("get_builderlab_nostr_identity"),
-      invoke<CommunitiesResponse>("list_builderlab_communities"),
+      invoke<IdentityResponse>("get_accounts_nostr_identity"),
+      invoke<CommunitiesResponse>("list_accounts_communities"),
     ]);
     if (
       identityResponse.error &&
@@ -114,7 +114,7 @@ export function HostedCommunitiesSettingsCard() {
 
   React.useEffect(() => {
     let active = true;
-    void invoke<BuilderlabAuth | null>("get_builderlab_auth")
+    void invoke<AccountsAuth | null>("get_accounts_auth")
       .then(async (nextAuth) => {
         if (!active) return;
         setAuth(nextAuth);
@@ -149,14 +149,14 @@ export function HostedCommunitiesSettingsCard() {
 
   const signIn = () =>
     run("Signing in…", async () => {
-      const nextAuth = await invoke<BuilderlabAuth>("start_builderlab_login");
+      const nextAuth = await invoke<AccountsAuth>("start_accounts_login");
       setAuth(nextAuth);
       await loadAccount();
     });
 
   const signOut = () =>
     run("Signing out…", async () => {
-      await invoke("clear_builderlab_auth");
+      await invoke("clear_accounts_auth");
       setAuth(null);
       setIdentity(null);
       setCommunities([]);
@@ -167,7 +167,7 @@ export function HostedCommunitiesSettingsCard() {
   const connectIdentity = () =>
     run("Connecting HireShelby identity…", async () => {
       const response = await invoke<IdentityResponse>(
-        "bind_builderlab_nostr_identity",
+        "bind_accounts_nostr_identity",
       );
       if (response.error) {
         throw new Error(
@@ -185,7 +185,7 @@ export function HostedCommunitiesSettingsCard() {
   const unpairIdentity = () =>
     run("Unpairing identity…", async () => {
       const response = await invoke<IdentityResponse>(
-        "delete_builderlab_nostr_identity",
+        "delete_accounts_nostr_identity",
       );
       if (response.error) {
         throw new Error(
@@ -200,7 +200,7 @@ export function HostedCommunitiesSettingsCard() {
       await loadAccount();
     });
 
-  // The Builderlab account can be bound to an npub that differs from the key
+  // The Accounts account can be bound to an npub that differs from the key
   // this Desktop is currently signing with (e.g. you signed into an email tied
   // to a different test identity). When that happens the community list and
   // Connect buttons operate on the *bound* npub's communities, so "Connect"
@@ -219,11 +219,11 @@ export function HostedCommunitiesSettingsCard() {
     run("Switching identity…", async () => {
       // The account is bound to a different npub, so re-binding directly returns
       // identity_already_bound. Release the current binding first, then bind
-      // this device's key. If the local key is reserved by another Builderlab
+      // this device's key. If the local key is reserved by another Accounts
       // account, the bind fails with pubkey_already_bound — surface that instead
       // of leaving the swap half-finished silently.
       const released = await invoke<IdentityResponse>(
-        "delete_builderlab_nostr_identity",
+        "delete_accounts_nostr_identity",
       );
       if (released.error) {
         throw new Error(
@@ -235,7 +235,7 @@ export function HostedCommunitiesSettingsCard() {
         );
       }
       const bound = await invoke<IdentityResponse>(
-        "bind_builderlab_nostr_identity",
+        "bind_accounts_nostr_identity",
       );
       if (bound.error) {
         // Refresh so the UI reflects the now-unbound account before surfacing
@@ -243,7 +243,7 @@ export function HostedCommunitiesSettingsCard() {
         await loadAccount();
         throw new Error(
           bound.error.code === "pubkey_already_bound"
-            ? "This device's HireShelby identity is already reserved by another Builderlab account, so it can't be connected here. Sign in with that account, or transfer the identity there first."
+            ? "This device's HireShelby identity is already reserved by another HireShelby account, so it can't be connected here. Sign in with that account, or transfer the identity there first."
             : errorMessage(
                 bound.error,
                 bound.correlation_id,
@@ -259,7 +259,7 @@ export function HostedCommunitiesSettingsCard() {
     if (!community.id) return Promise.resolve(false);
     return run("Archiving community…", async () => {
       const response = await invoke<CommunityMutationResponse>(
-        "archive_builderlab_community",
+        "archive_accounts_community",
         { communityId: community.id },
       );
       // Treat a returned archived timestamp as success even if the payload also
@@ -281,7 +281,7 @@ export function HostedCommunitiesSettingsCard() {
     if (!community.id) return Promise.resolve(false);
     return run("Unarchiving community…", async () => {
       const response = await invoke<CommunityMutationResponse>(
-        "unarchive_builderlab_community",
+        "unarchive_accounts_community",
         { communityId: community.id },
       );
       if (response.error && response.community?.archived_at !== null) {
@@ -300,7 +300,7 @@ export function HostedCommunitiesSettingsCard() {
   const transferCommunity = (community: HostedCommunity, npub: string) =>
     run("Transferring ownership…", async () => {
       const response = await invoke<CommunityMutationResponse>(
-        "transfer_builderlab_community",
+        "transfer_accounts_community",
         { communityId: community.id, transfereeNpub: npub },
       );
       if (response.error) {
@@ -334,7 +334,7 @@ export function HostedCommunitiesSettingsCard() {
       void (async () => {
         try {
           const response = await invoke<AvailabilityResponse>(
-            "check_builderlab_community_name",
+            "check_accounts_community_name",
             { name: normalizedName },
           );
           if (cancelled) return;
@@ -365,7 +365,7 @@ export function HostedCommunitiesSettingsCard() {
       return;
     void run("Creating community…", async () => {
       const availabilityResponse = await invoke<AvailabilityResponse>(
-        "check_builderlab_community_name",
+        "check_accounts_community_name",
         { name: normalizedName },
       );
       if (availabilityResponse.error || !availabilityResponse.available) {
@@ -379,7 +379,7 @@ export function HostedCommunitiesSettingsCard() {
         );
       }
       const response = await invoke<CommunityMutationResponse>(
-        "create_builderlab_community",
+        "create_accounts_community",
         { name: normalizedName },
       );
       if (response.error || !response.community) {
@@ -418,7 +418,7 @@ export function HostedCommunitiesSettingsCard() {
     <section className="space-y-6" data-testid="hosted-communities-settings">
       <SettingsSectionHeader
         title="Hosted communities"
-        description="HireShelby works with any relay. This page is only for relay hosting provided by Block — sign in with a Builderlab account to create and manage Block-hosted communities. Builderlab sign-in is used on this page alone."
+        description="HireShelby works with any relay. This page is only for relay hosting provided by HireShelby — sign in with your HireShelby account to create and manage HireShelby-hosted communities. Sign-in is used on this page alone."
       />
 
       {error ? (
@@ -450,7 +450,7 @@ export function HostedCommunitiesSettingsCard() {
             ) : (
               <ExternalLink className="h-4 w-4" />
             )}
-            {action ?? "Sign in with Builderlab"}
+            {action ?? "Sign in with HireShelby"}
           </Button>
         </div>
       ) : (
@@ -458,7 +458,7 @@ export function HostedCommunitiesSettingsCard() {
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 p-4">
             <div>
               <p className="text-sm font-medium">
-                {auth.name || auth.email || "Builderlab account"}
+                {auth.name || auth.email || "HireShelby account"}
               </p>
               {auth.name && auth.email ? (
                 <p className="text-xs text-muted-foreground">{auth.email}</p>
@@ -480,7 +480,7 @@ export function HostedCommunitiesSettingsCard() {
                 Link this account to your HireShelby identity
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                This Builderlab account isn&apos;t linked to a HireShelby
+                This HireShelby account isn&apos;t linked to a HireShelby
                 identity yet. Connect this device&apos;s key to create and own
                 communities under it — HireShelby signs a one-time challenge
                 locally, so your private key never leaves Desktop.
@@ -505,7 +505,7 @@ export function HostedCommunitiesSettingsCard() {
                     This account is connected to a different HireShelby identity
                   </h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Your Builderlab account owns communities under another
+                    Your Accounts account owns communities under another
                     HireShelby key, so connecting them here would join a relay
                     this device isn&apos;t a member of. Creating and connecting
                     are paused until the identities match.
@@ -709,9 +709,9 @@ function UnpairIdentityButton({
         <AlertDialogHeader>
           <AlertDialogTitle>Unpair this HireShelby identity?</AlertDialogTitle>
           <AlertDialogDescription>
-            Your Builderlab account will no longer be connected to this
-            HireShelby key. You can reconnect any key later, but community
-            actions stay unavailable until you do.
+            Your Accounts account will no longer be connected to this HireShelby
+            key. You can reconnect any key later, but community actions stay
+            unavailable until you do.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

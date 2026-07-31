@@ -148,8 +148,8 @@ type E2eConfig = {
   mock?: {
     /** Advertised HEAD for the first mock project without adding that branch. */
     projectHeadBranch?: string;
-    /** Builderlab account returned by hosted-community onboarding. Null/omitted = signed out. */
-    builderlabAuth?: {
+    /** Accounts account returned by hosted-community onboarding. Null/omitted = signed out. */
+    accountsAuth?: {
       email?: string;
       name?: string;
       expiresAt: string;
@@ -161,14 +161,14 @@ type E2eConfig = {
       age_attestation_required: boolean;
       version: string;
     } | null;
-    /** Delay Builderlab login completion so cancellation/retry UI can be tested. */
-    builderlabLoginDelayMs?: number;
-    /** Bound Builderlab Nostr identity. Null/omitted = not linked yet. */
-    builderlabIdentity?: { npub?: string; pubkey_hex?: string } | null;
+    /** Delay Accounts login completion so cancellation/retry UI can be tested. */
+    accountsLoginDelayMs?: number;
+    /** Bound Accounts Nostr identity. Null/omitted = not linked yet. */
+    accountsIdentity?: { npub?: string; pubkey_hex?: string } | null;
     /** Structured error returned when onboarding tries to bind the local identity. */
-    builderlabBindError?: { code?: string; message?: string };
-    /** Communities owned by the mocked Builderlab account. */
-    builderlabCommunities?: Array<{
+    accountsBindError?: { code?: string; message?: string };
+    /** Communities owned by the mocked Accounts account. */
+    accountsCommunities?: Array<{
       id?: string;
       name?: string;
       slug?: string;
@@ -176,7 +176,7 @@ type E2eConfig = {
       archived_at?: string | null;
     }>;
     /** Override the community returned after hosted creation. */
-    builderlabCreatedCommunity?: {
+    accountsCreatedCommunity?: {
       id?: string;
       name?: string;
       slug?: string;
@@ -9725,56 +9725,56 @@ export function maybeInstallE2eTauriMocks() {
     window.__BUZZ_E2E_COMMAND_LOG__?.push({ command, payload });
 
     switch (command) {
-      case "get_builderlab_auth":
-        return activeConfig?.mock?.builderlabAuth ?? null;
-      case "start_builderlab_login": {
-        const delayMs = activeConfig?.mock?.builderlabLoginDelayMs ?? 0;
+      case "get_accounts_auth":
+        return activeConfig?.mock?.accountsAuth ?? null;
+      case "start_accounts_login": {
+        const delayMs = activeConfig?.mock?.accountsLoginDelayMs ?? 0;
         if (delayMs > 0)
           await new Promise((resolve) => window.setTimeout(resolve, delayMs));
-        const nextAuth = activeConfig?.mock?.builderlabAuth ?? {
+        const nextAuth = activeConfig?.mock?.accountsAuth ?? {
           email: "owner@example.com",
           expiresAt: "2099-01-01T00:00:00Z",
         };
-        if (activeConfig?.mock) activeConfig.mock.builderlabAuth = nextAuth;
+        if (activeConfig?.mock) activeConfig.mock.accountsAuth = nextAuth;
         return nextAuth;
       }
-      case "cancel_builderlab_login":
+      case "cancel_accounts_login":
         return null;
-      case "clear_builderlab_auth":
-        if (activeConfig?.mock) activeConfig.mock.builderlabAuth = null;
+      case "clear_accounts_auth":
+        if (activeConfig?.mock) activeConfig.mock.accountsAuth = null;
         return null;
-      case "get_builderlab_nostr_identity":
-        return activeConfig?.mock?.builderlabIdentity
-          ? { identity: activeConfig.mock.builderlabIdentity }
+      case "get_accounts_nostr_identity":
+        return activeConfig?.mock?.accountsIdentity
+          ? { identity: activeConfig.mock.accountsIdentity }
           : { error: { code: "missing_mapping", setup_needed: true } };
-      case "bind_builderlab_nostr_identity": {
-        if (activeConfig?.mock?.builderlabBindError)
-          return { error: activeConfig.mock.builderlabBindError };
+      case "bind_accounts_nostr_identity": {
+        if (activeConfig?.mock?.accountsBindError)
+          return { error: activeConfig.mock.accountsBindError };
         const activeIdentity = identity ?? DEFAULT_MOCK_IDENTITY;
         const nextIdentity = {
           pubkey_hex: activeIdentity.pubkey,
           npub: `npub1${activeIdentity.pubkey}`,
         };
         if (activeConfig?.mock)
-          activeConfig.mock.builderlabIdentity = nextIdentity;
+          activeConfig.mock.accountsIdentity = nextIdentity;
         return { identity: nextIdentity };
       }
-      case "delete_builderlab_nostr_identity":
-        if (activeConfig?.mock) activeConfig.mock.builderlabIdentity = null;
+      case "delete_accounts_nostr_identity":
+        if (activeConfig?.mock) activeConfig.mock.accountsIdentity = null;
         return {};
-      case "list_builderlab_communities":
+      case "list_accounts_communities":
         return {
-          communities: activeConfig?.mock?.builderlabCommunities ?? [],
+          communities: activeConfig?.mock?.accountsCommunities ?? [],
         };
-      case "check_builderlab_community_name":
+      case "check_accounts_community_name":
         return {
           available: true,
           normalized_host: `${(payload as { name?: string })?.name ?? "community"}.communities.hireshelby.com`,
         };
-      case "create_builderlab_community": {
+      case "create_accounts_community": {
         const name = (payload as { name?: string })?.name ?? "community";
         return {
-          community: activeConfig?.mock?.builderlabCreatedCommunity ?? {
+          community: activeConfig?.mock?.accountsCreatedCommunity ?? {
             id: `hosted-${name}`,
             name,
             normalized_host: `${name}.communities.hireshelby.com`,

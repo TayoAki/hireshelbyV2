@@ -9,12 +9,12 @@ const DEFAULT_MOCK_PUBKEY = "deadbeef".repeat(8);
 
 test.beforeEach(async ({ page }) => {
   await installMockBridge(page, {
-    builderlabAuth: {
+    accountsAuth: {
       email: "owner@example.com",
       expiresAt: "2099-01-01T00:00:00Z",
     },
-    builderlabIdentity: { pubkey_hex: DEFAULT_MOCK_PUBKEY },
-    builderlabCommunities: [
+    accountsIdentity: { pubkey_hex: DEFAULT_MOCK_PUBKEY },
+    accountsCommunities: [
       {
         id: "active-community",
         name: "E2E Test",

@@ -3,22 +3,22 @@ import { AlertCircle, LoaderCircle } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import {
-  bindBuilderlabIdentity,
-  cancelBuilderlabLogin,
+  bindAccountsIdentity,
+  cancelAccountsLogin,
   checkHostedCommunityName,
-  clearBuilderlabAuth,
+  clearAccountsAuth,
   createHostedCommunity,
-  deleteBuilderlabIdentity,
-  getBuilderlabAuth,
+  deleteAccountsIdentity,
+  getAccountsAuth,
   HOSTED_COMMUNITY_LIMIT,
   HOSTED_COMMUNITY_SUFFIX,
   hostedCommunityErrorMessage,
   hostedCommunityRelayUrl,
-  type BuilderlabAuth,
+  type AccountsAuth,
   type HostedCommunity,
   type HostedNostrIdentity,
   loadHostedCommunityAccount,
-  startBuilderlabLogin,
+  startAccountsLogin,
   VALID_HOSTED_COMMUNITY_NAME,
 } from "@/features/communities/hostedCommunityApi";
 import { useCommunityOnboarding } from "@/features/onboarding/communityOnboarding";
@@ -79,7 +79,7 @@ export function HostedCommunityOnboarding({
   const onboarding = useCommunityOnboarding();
   const shouldReduceMotion = useReducedMotion();
   const localPubkey = useIdentityQuery().data?.pubkey ?? null;
-  const [auth, setAuth] = React.useState<BuilderlabAuth | null>(null);
+  const [auth, setAuth] = React.useState<AccountsAuth | null>(null);
   const [identity, setIdentity] = React.useState<HostedNostrIdentity | null>(
     null,
   );
@@ -101,7 +101,7 @@ export function HostedCommunityOnboarding({
 
   React.useEffect(() => {
     let active = true;
-    void getBuilderlabAuth()
+    void getAccountsAuth()
       .then(async (nextAuth) => {
         if (!active) return;
         setAuth(nextAuth);
@@ -135,7 +135,7 @@ export function HostedCommunityOnboarding({
     const attempt = ++loginAttempt.current;
     setAction("Signing in…");
     setError(null);
-    void startBuilderlabLogin()
+    void startAccountsLogin()
       .then(async (nextAuth) => {
         if (loginAttempt.current !== attempt) return;
         setAuth(nextAuth);
@@ -155,7 +155,7 @@ export function HostedCommunityOnboarding({
     setAction(null);
     setError(null);
     onBack();
-    void cancelBuilderlabLogin().catch(() => {
+    void cancelAccountsLogin().catch(() => {
       // The modal has already closed and the login attempt is invalidated;
       // cancellation is best-effort cleanup for the native/browser flow.
     });
@@ -163,7 +163,7 @@ export function HostedCommunityOnboarding({
 
   const signOut = () =>
     run("Signing out…", async () => {
-      await clearBuilderlabAuth();
+      await clearAccountsAuth();
       setAuth(null);
       setIdentity(null);
       setCommunities([]);
@@ -174,14 +174,14 @@ export function HostedCommunityOnboarding({
 
   const goBack = () => {
     void run("Signing out…", async () => {
-      await clearBuilderlabAuth();
+      await clearAccountsAuth();
       onBack();
     });
   };
 
   const connectIdentity = () =>
     run("Connecting identity…", async () => {
-      const response = await bindBuilderlabIdentity();
+      const response = await bindAccountsIdentity();
       if (response.error) {
         throw new Error(
           hostedCommunityErrorMessage(
@@ -206,7 +206,7 @@ export function HostedCommunityOnboarding({
 
   const switchToDeviceIdentity = () =>
     run("Switching identity…", async () => {
-      const released = await deleteBuilderlabIdentity();
+      const released = await deleteAccountsIdentity();
       if (released.error) {
         throw new Error(
           hostedCommunityErrorMessage(
@@ -216,12 +216,12 @@ export function HostedCommunityOnboarding({
           ),
         );
       }
-      const bound = await bindBuilderlabIdentity();
+      const bound = await bindAccountsIdentity();
       if (bound.error) {
         await loadAccount();
         throw new Error(
           bound.error.code === "pubkey_already_bound"
-            ? "This device's HireShelby identity belongs to a different Builderlab account and can't be moved from here. Sign out, then sign in with the account that already owns this identity."
+            ? "This device's HireShelby identity belongs to a different HireShelby account and can't be moved from here. Sign out, then sign in with the account that already owns this identity."
             : hostedCommunityErrorMessage(
                 bound.error,
                 bound.correlation_id,
@@ -276,7 +276,7 @@ export function HostedCommunityOnboarding({
     const retryPrefix = created ? "The community was created, but " : "";
     if (!relayUrl) {
       throw new Error(
-        `${retryPrefix}Builderlab did not return its relay address. Try connecting it again, or contact support if it does not appear in your communities.`,
+        `${retryPrefix}Accounts did not return its relay address. Try connecting it again, or contact support if it does not appear in your communities.`,
       );
     }
     if (
@@ -483,8 +483,8 @@ export function HostedCommunityOnboarding({
               </DialogTitle>
               <DialogDescription className="mt-2 text-sm leading-6 text-foreground">
                 Sign in to connect a community you already own or create a new
-                one. We’ll open Builderlab in your browser, then bring you back
-                to HireShelby.
+                one. We’ll open Accounts in your browser, then bring you back to
+                HireShelby.
               </DialogDescription>
               {errorBox ? <div className="mt-5 w-full">{errorBox}</div> : null}
               {action === "Signing in…" ? (
@@ -506,7 +506,7 @@ export function HostedCommunityOnboarding({
               {/* Quiet breadcrumb: HireShelby itself is open source; this hosted
                     relay is the one account-backed piece of the flow. */}
               <p className="mt-6 w-full border-t border-foreground/10 pt-4 text-xs leading-5 text-foreground/45">
-                HireShelby is open source. Builderlab hosts the relay for this
+                HireShelby is open source. Accounts hosts the relay for this
                 account.
               </p>
             </>
@@ -516,7 +516,7 @@ export function HostedCommunityOnboarding({
                 Finish connecting HireShelby
               </DialogTitle>
               <DialogDescription className="mt-2 text-sm leading-6 text-foreground">
-                Your Builderlab account
+                Your Accounts account
                 {auth.email ? ` (${auth.email})` : ""} is ready. Connect this
                 device’s HireShelby identity to finish setup. Your private key
                 stays on this device.

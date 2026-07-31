@@ -90,7 +90,7 @@ export function AddCommunityDialog({
 
   const description =
     mode === "create"
-      ? "Opens Builderlab in your browser."
+      ? "Opens HireShelby in your browser."
       : mode === "join"
         ? "Use the community URL or invite link you received."
         : "Create a new community or join one you already have.";

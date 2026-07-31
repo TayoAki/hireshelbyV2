@@ -12,14 +12,29 @@ use tauri_plugin_opener::OpenerExt;
 use tokio::{net::TcpListener, sync::oneshot};
 use url::Url;
 
-const BUILDERLAB_API_BASE_URL: &str = "https://app.builderlab.xyz/api/goose";
+/// Default HireShelby control plane (`crates/hireshelby-accounts`).
+///
+/// Overridable via `HIRESHELBY_ACCOUNTS_URL` so dev, staging, and production
+/// builds can point at different control planes without a recompile.
+const DEFAULT_ACCOUNTS_BASE_URL: &str = "https://accounts.hireshelby.com";
 const LOGIN_TIMEOUT: Duration = Duration::from_secs(10 * 60);
-const BB_SESSION_CREDENTIAL_HEADER: &str = "X-BB-Session-Credential";
-// Builderlab enforces an Origin check on the identity bind endpoints. Browsers
-// attach this automatically; the desktop reqwest client must set it explicitly
-// or challenge/verify fail with `invalid_origin`. It also seeds the challenge
-// body's `origin` field so both agree.
-const BUILDERLAB_ORIGIN: &str = "https://app.builderlab.xyz";
+const SESSION_CREDENTIAL_HEADER: &str = "X-HireShelby-Session";
+
+/// Base URL of the control plane for this run.
+fn accounts_base_url() -> String {
+    std::env::var("HIRESHELBY_ACCOUNTS_URL")
+        .ok()
+        .map(|v| v.trim().trim_end_matches('/').to_string())
+        .filter(|v| !v.is_empty())
+        .unwrap_or_else(|| DEFAULT_ACCOUNTS_BASE_URL.to_string())
+}
+
+/// Origin sent on identity-bind requests. The control plane checks it, and the
+/// challenge body's `origin` field must agree, so both are derived from the
+/// same base URL rather than hardcoded separately.
+fn accounts_origin() -> String {
+    accounts_base_url()
+}
 const AUTH_COMPLETE_HTML: &str = r#"<!doctype html>
 <html lang="en">
 <head>
@@ -30,8 +45,8 @@ const AUTH_COMPLETE_HTML: &str = r#"<!doctype html>
     :root {
       color-scheme: light;
       font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #231e1e;
-      background: #d7d72e;
+      color: #0d1117;
+      background: #0d1117;
     }
 
     * {
@@ -45,7 +60,7 @@ const AUTH_COMPLETE_HTML: &str = r#"<!doctype html>
       display: grid;
       place-items: center;
       padding: 24px;
-      background-color: #d7d72e;
+      background-color: #0d1117;
       background-image: radial-gradient(circle, rgba(35, 30, 30, 0.16) 1.2px, transparent 1.3px);
       background-size: 37px 37px;
     }
@@ -53,18 +68,18 @@ const AUTH_COMPLETE_HTML: &str = r#"<!doctype html>
     main {
       width: min(100%, 560px);
       padding: clamp(32px, 8vw, 64px);
-      border: 2px solid #231e1e;
+      border: 2px solid #0d1117;
       border-radius: 28px;
-      background: #d7e7f6;
-      box-shadow: 8px 8px 0 #231e1e;
+      background: #f7f9fc;
+      box-shadow: 8px 8px 0 #0d1117;
     }
 
-    .bee {
+    .mark {
       display: block;
       width: 72px;
       height: auto;
       margin-bottom: 40px;
-      color: #231e1e;
+      color: #0d1117;
     }
 
     .eyebrow {
@@ -74,7 +89,7 @@ const AUTH_COMPLETE_HTML: &str = r#"<!doctype html>
       margin: 0 0 20px;
       padding: 6px 14px;
       border-radius: 999px;
-      background: #d7d72e;
+      background: #0d1117;
       font-size: 14px;
       font-weight: 600;
       letter-spacing: 0.01em;
@@ -105,10 +120,10 @@ const AUTH_COMPLETE_HTML: &str = r#"<!doctype html>
       main {
         padding: 32px 28px 36px;
         border-radius: 22px;
-        box-shadow: 6px 6px 0 #231e1e;
+        box-shadow: 6px 6px 0 #0d1117;
       }
 
-      .bee {
+      .mark {
         width: 60px;
         margin-bottom: 32px;
       }
@@ -117,20 +132,11 @@ const AUTH_COMPLETE_HTML: &str = r#"<!doctype html>
 </head>
 <body>
   <main>
-    <svg class="bee" viewBox="0 0 466 309" role="img" aria-label="HireShelby">
-      <defs>
-        <mask id="bee-mask">
-          <rect width="466" height="309" fill="black"/>
-          <circle cx="91.7" cy="154.5" r="91.7" fill="white"/>
-          <circle cx="374.3" cy="154.5" r="91.7" fill="white"/>
-          <rect x="128" width="210" height="309" rx="34" fill="white"/>
-          <ellipse cx="193.3" cy="84.4" rx="27" ry="27" fill="black"/>
-          <ellipse cx="276" cy="84.4" rx="27" ry="27" fill="black"/>
-          <rect x="166.3" y="157.2" width="136.9" height="38.3" rx="5" fill="black"/>
-          <rect x="166.9" y="235.1" width="136.2" height="37.6" rx="5" fill="black"/>
-        </mask>
-      </defs>
-      <rect width="466" height="309" fill="currentColor" mask="url(#bee-mask)"/>
+    <svg class="mark" viewBox="0 0 64 64" role="img" aria-label="HireShelby">
+      <rect width="64" height="64" rx="14" fill="currentColor"/>
+      <text x="32" y="44" text-anchor="middle"
+            font-family="ui-sans-serif, -apple-system, sans-serif"
+            font-size="34" font-weight="700" fill='#f0f4f8'>HS</text>
     </svg>
     <div class="eyebrow">Authentication complete</div>
     <h1>You&rsquo;re signed in.</h1>
@@ -140,10 +146,10 @@ const AUTH_COMPLETE_HTML: &str = r#"<!doctype html>
 </html>"#;
 
 #[derive(Default)]
-pub(crate) struct BuilderlabSession(Mutex<Option<StoredSession>>);
+pub(crate) struct AccountsSession(Mutex<Option<StoredSession>>);
 
 #[derive(Default)]
-pub(crate) struct BuilderlabLogin(Mutex<Option<PendingLogin>>);
+pub(crate) struct AccountsLogin(Mutex<Option<PendingLogin>>);
 
 struct PendingLogin {
     id: uuid::Uuid,
@@ -162,7 +168,7 @@ struct LoginExchangeResponse {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct BuilderlabAuthInfo {
+pub(crate) struct AccountsAuthInfo {
     expires_at: String,
     email: Option<String>,
     name: Option<String>,
@@ -210,8 +216,8 @@ async fn login_callback(
 }
 
 fn api_url(path: &str) -> Result<Url, String> {
-    Url::parse(&format!("{BUILDERLAB_API_BASE_URL}{path}"))
-        .map_err(|error| format!("invalid Builderlab API URL: {error}"))
+    Url::parse(&format!("{}{path}", accounts_base_url()))
+        .map_err(|error| format!("invalid Accounts API URL: {error}"))
 }
 
 fn login_url(return_to: &str) -> Result<Url, String> {
@@ -219,7 +225,7 @@ fn login_url(return_to: &str) -> Result<Url, String> {
     login_url
         .query_pairs_mut()
         .append_pair("type", "cli")
-        .append_pair("product", "buzz")
+        .append_pair("product", "hireshelby")
         .append_pair("returnTo", return_to);
     Ok(login_url)
 }
@@ -230,30 +236,30 @@ async fn authenticated_user(
 ) -> Result<AuthMeResponse, String> {
     let response = client
         .get(api_url("/v1/auth/me")?)
-        .header(BB_SESSION_CREDENTIAL_HEADER, credential)
+        .header(SESSION_CREDENTIAL_HEADER, credential)
         .timeout(Duration::from_secs(30))
         .send()
         .await
-        .map_err(|error| format!("Builderlab session check failed: {error}"))?;
+        .map_err(|error| format!("Accounts session check failed: {error}"))?;
     if !response.status().is_success() {
         return Err(format!(
-            "Builderlab session check failed with HTTP {}",
+            "Accounts session check failed with HTTP {}",
             response.status()
         ));
     }
     response
         .json()
         .await
-        .map_err(|error| format!("invalid Builderlab session response: {error}"))
+        .map_err(|error| format!("invalid Accounts session response: {error}"))
 }
 
 #[tauri::command]
-pub(crate) async fn start_builderlab_login(
+pub(crate) async fn start_accounts_login(
     app: tauri::AppHandle,
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
-    login: tauri::State<'_, BuilderlabLogin>,
-) -> Result<BuilderlabAuthInfo, String> {
+    session: tauri::State<'_, AccountsSession>,
+    login: tauri::State<'_, AccountsLogin>,
+) -> Result<AccountsAuthInfo, String> {
     let listener = TcpListener::bind("127.0.0.1:0")
         .await
         .map_err(|error| format!("could not start local authentication callback: {error}"))?;
@@ -278,7 +284,7 @@ pub(crate) async fn start_builderlab_login(
     let login_url = login_url(&return_to)?;
     if let Err(error) = app.opener().open_url(login_url.as_str(), None::<&str>) {
         server.abort();
-        return Err(format!("could not open Builderlab authentication: {error}"));
+        return Err(format!("could not open Accounts authentication: {error}"));
     }
 
     let login_id = uuid::Uuid::new_v4();
@@ -307,12 +313,12 @@ pub(crate) async fn start_builderlab_login(
             }
             Err(_) => {
                 server.abort();
-                return Err("Builderlab authentication timed out".to_owned());
+                return Err("Accounts authentication timed out".to_owned());
             }
         },
         _ = &mut cancel_receiver => {
             server.abort();
-            return Err("Builderlab authentication canceled".to_owned());
+            return Err("Accounts authentication canceled".to_owned());
         }
     };
     server.abort();
@@ -324,26 +330,26 @@ pub(crate) async fn start_builderlab_login(
         .timeout(Duration::from_secs(30))
         .send()
         .await
-        .map_err(|error| format!("Builderlab code exchange failed: {error}"))?;
+        .map_err(|error| format!("Accounts code exchange failed: {error}"))?;
     if !response.status().is_success() {
         return Err(format!(
-            "Builderlab code exchange failed with HTTP {}",
+            "Accounts code exchange failed with HTTP {}",
             response.status()
         ));
     }
     let exchanged: LoginExchangeResponse = response
         .json()
         .await
-        .map_err(|error| format!("invalid Builderlab code exchange response: {error}"))?;
+        .map_err(|error| format!("invalid Accounts code exchange response: {error}"))?;
     if exchanged.session_credential.is_empty() {
-        return Err("Builderlab code exchange returned an empty credential".to_owned());
+        return Err("Accounts code exchange returned an empty credential".to_owned());
     }
 
     let me = authenticated_user(&app_state.http_client, &exchanged.session_credential).await?;
     if exchanged.expires_at != me.expires_at {
-        return Err("Builderlab session expiry did not match code exchange".to_owned());
+        return Err("Accounts session expiry did not match code exchange".to_owned());
     }
-    let info = BuilderlabAuthInfo {
+    let info = AccountsAuthInfo {
         expires_at: me.expires_at.clone(),
         email: me.email,
         name: me.name,
@@ -354,7 +360,7 @@ pub(crate) async fn start_builderlab_login(
             .as_ref()
             .is_none_or(|pending| pending.id != login_id)
         {
-            return Err("Builderlab authentication canceled".to_owned());
+            return Err("Accounts authentication canceled".to_owned());
         }
         *pending = None;
     }
@@ -365,10 +371,10 @@ pub(crate) async fn start_builderlab_login(
 }
 
 #[tauri::command]
-pub(crate) async fn get_builderlab_auth(
+pub(crate) async fn get_accounts_auth(
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
-) -> Result<Option<BuilderlabAuthInfo>, String> {
+    session: tauri::State<'_, AccountsSession>,
+) -> Result<Option<AccountsAuthInfo>, String> {
     let stored = session
         .0
         .lock()
@@ -379,7 +385,7 @@ pub(crate) async fn get_builderlab_auth(
         return Ok(None);
     };
     match authenticated_user(&app_state.http_client, &credential).await {
-        Ok(me) => Ok(Some(BuilderlabAuthInfo {
+        Ok(me) => Ok(Some(AccountsAuthInfo {
             expires_at: me.expires_at,
             email: me.email,
             name: me.name,
@@ -395,9 +401,7 @@ pub(crate) async fn get_builderlab_auth(
 }
 
 #[tauri::command]
-pub(crate) fn cancel_builderlab_login(
-    login: tauri::State<'_, BuilderlabLogin>,
-) -> Result<(), String> {
+pub(crate) fn cancel_accounts_login(login: tauri::State<'_, AccountsLogin>) -> Result<(), String> {
     if let Some(pending) = login.0.lock().map_err(|error| error.to_string())?.take() {
         let _ = pending.cancel.send(());
     }
@@ -405,8 +409,8 @@ pub(crate) fn cancel_builderlab_login(
 }
 
 #[tauri::command]
-pub(crate) fn clear_builderlab_auth(
-    session: tauri::State<'_, BuilderlabSession>,
+pub(crate) fn clear_accounts_auth(
+    session: tauri::State<'_, AccountsSession>,
 ) -> Result<(), String> {
     *session.0.lock().map_err(|error| error.to_string())? = None;
     Ok(())
@@ -423,7 +427,7 @@ struct NostrIdentityChallenge {
 
 async fn authenticated_json(
     client: &reqwest::Client,
-    session: &BuilderlabSession,
+    session: &AccountsSession,
     method: reqwest::Method,
     path: &str,
     body: serde_json::Value,
@@ -434,23 +438,23 @@ async fn authenticated_json(
         .map_err(|error| error.to_string())?
         .as_ref()
         .map(|stored| stored.credential.clone())
-        .ok_or_else(|| "Sign in to Builderlab first".to_owned())?;
+        .ok_or_else(|| "Sign in to Accounts first".to_owned())?;
     let response = client
         .request(method, api_url(path)?)
-        .header(BB_SESSION_CREDENTIAL_HEADER, credential)
-        .header(reqwest::header::ORIGIN, BUILDERLAB_ORIGIN)
+        .header(SESSION_CREDENTIAL_HEADER, credential)
+        .header(reqwest::header::ORIGIN, &accounts_origin())
         .json(&body)
         .timeout(Duration::from_secs(60))
         .send()
         .await
-        .map_err(|error| format!("Builderlab request failed: {error}"))?;
+        .map_err(|error| format!("Accounts request failed: {error}"))?;
     let status = response.status();
     let value: serde_json::Value = response
         .json()
         .await
-        .map_err(|error| format!("invalid Builderlab response: {error}"))?;
+        .map_err(|error| format!("invalid Accounts response: {error}"))?;
     if !status.is_success() {
-        // Builderlab error responses carry a structured `{ error: { code,
+        // Accounts error responses carry a structured `{ error: { code,
         // message, setup_needed, ... } }` body. Pass those through as `Ok` so the
         // frontend's typed handling and friendly per-code messages apply, instead
         // of surfacing a raw JSON blob. Only fall back to a plain string when the
@@ -458,37 +462,37 @@ async fn authenticated_json(
         if value.get("error").is_some() {
             return Ok(value);
         }
-        return Err(format!("Builderlab request failed (HTTP {status})."));
+        return Err(format!("Accounts request failed (HTTP {status})."));
     }
     Ok(value)
 }
 
 #[tauri::command]
-pub(crate) async fn get_builderlab_nostr_identity(
+pub(crate) async fn get_accounts_nostr_identity(
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
+    session: tauri::State<'_, AccountsSession>,
 ) -> Result<serde_json::Value, String> {
     authenticated_json(
         &app_state.http_client,
         &session,
         reqwest::Method::POST,
-        "/v1/buzz/nostr-identities/current",
+        "/v1/nostr-identities/current",
         serde_json::json!({}),
     )
     .await
 }
 
 #[tauri::command]
-pub(crate) async fn bind_builderlab_nostr_identity(
+pub(crate) async fn bind_accounts_nostr_identity(
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
+    session: tauri::State<'_, AccountsSession>,
 ) -> Result<serde_json::Value, String> {
     let challenge_value = authenticated_json(
         &app_state.http_client,
         &session,
         reqwest::Method::POST,
-        "/v1/buzz/nostr-identities/challenge",
-        serde_json::json!({ "origin": BUILDERLAB_ORIGIN }),
+        "/v1/nostr-identities/challenge",
+        serde_json::json!({ "origin": &accounts_origin() }),
     )
     .await?;
     // A structured error here (e.g. missing_mapping) arrives as an object with an
@@ -513,7 +517,7 @@ pub(crate) async fn bind_builderlab_nostr_identity(
         &app_state.http_client,
         &session,
         reqwest::Method::POST,
-        "/v1/buzz/nostr-identities/verify",
+        "/v1/nostr-identities/verify",
         serde_json::json!({
             "challenge_id": challenge.challenge_id,
             "nonce": challenge.nonce,
@@ -524,114 +528,114 @@ pub(crate) async fn bind_builderlab_nostr_identity(
 }
 
 #[tauri::command]
-pub(crate) async fn delete_builderlab_nostr_identity(
+pub(crate) async fn delete_accounts_nostr_identity(
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
+    session: tauri::State<'_, AccountsSession>,
 ) -> Result<serde_json::Value, String> {
     authenticated_json(
         &app_state.http_client,
         &session,
         reqwest::Method::POST,
-        "/v1/buzz/nostr-identities/delete",
+        "/v1/nostr-identities/delete",
         serde_json::json!({}),
     )
     .await
 }
 
 #[tauri::command]
-pub(crate) async fn list_builderlab_communities(
+pub(crate) async fn list_accounts_communities(
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
+    session: tauri::State<'_, AccountsSession>,
 ) -> Result<serde_json::Value, String> {
     authenticated_json(
         &app_state.http_client,
         &session,
         reqwest::Method::POST,
-        "/v1/buzz/communities/list",
+        "/v1/communities/list",
         serde_json::json!({}),
     )
     .await
 }
 
 #[tauri::command]
-pub(crate) async fn check_builderlab_community_name(
+pub(crate) async fn check_accounts_community_name(
     name: String,
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
+    session: tauri::State<'_, AccountsSession>,
 ) -> Result<serde_json::Value, String> {
     authenticated_json(
         &app_state.http_client,
         &session,
         reqwest::Method::POST,
-        "/v1/buzz/communities/availability",
+        "/v1/communities/availability",
         serde_json::json!({ "name": name }),
     )
     .await
 }
 
 #[tauri::command]
-pub(crate) async fn create_builderlab_community(
+pub(crate) async fn create_accounts_community(
     name: String,
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
+    session: tauri::State<'_, AccountsSession>,
 ) -> Result<serde_json::Value, String> {
     authenticated_json(
         &app_state.http_client,
         &session,
         reqwest::Method::POST,
-        "/v1/buzz/communities",
+        "/v1/communities",
         serde_json::json!({ "name": name }),
     )
     .await
 }
 
 #[tauri::command]
-pub(crate) async fn archive_builderlab_community(
+pub(crate) async fn archive_accounts_community(
     community_id: String,
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
+    session: tauri::State<'_, AccountsSession>,
 ) -> Result<serde_json::Value, String> {
     authenticated_json(
         &app_state.http_client,
         &session,
         reqwest::Method::POST,
-        "/v1/buzz/communities/archive",
+        "/v1/communities/archive",
         serde_json::json!({ "community_id": community_id }),
     )
     .await
 }
 
 #[tauri::command]
-pub(crate) async fn unarchive_builderlab_community(
+pub(crate) async fn unarchive_accounts_community(
     community_id: String,
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
+    session: tauri::State<'_, AccountsSession>,
 ) -> Result<serde_json::Value, String> {
     authenticated_json(
         &app_state.http_client,
         &session,
         reqwest::Method::POST,
-        "/v1/buzz/communities/unarchive",
+        "/v1/communities/unarchive",
         serde_json::json!({ "community_id": community_id }),
     )
     .await
 }
 
 #[tauri::command]
-pub(crate) async fn transfer_builderlab_community(
+pub(crate) async fn transfer_accounts_community(
     community_id: String,
     transferee_npub: String,
     app_state: tauri::State<'_, crate::app_state::AppState>,
-    session: tauri::State<'_, BuilderlabSession>,
+    session: tauri::State<'_, AccountsSession>,
 ) -> Result<serde_json::Value, String> {
-    // The Builderlab transfer endpoint expects camelCase keys, unlike the
+    // The Accounts transfer endpoint expects camelCase keys, unlike the
     // archive/unarchive endpoints which take `community_id`; mirror the web
     // client's payload exactly.
     authenticated_json(
         &app_state.http_client,
         &session,
         reqwest::Method::POST,
-        "/v1/buzz/communities/transfer",
+        "/v1/communities/transfer",
         serde_json::json!({
             "communityId": community_id,
             "transfereeNpub": transferee_npub,
@@ -648,9 +652,9 @@ mod tests {
     fn auth_complete_page_uses_buzz_brand() {
         for expected in [
             "<title>HireShelby authentication complete</title>",
-            "#d7d72e",
-            "#231e1e",
-            "#d7e7f6",
+            "#0d1117",
+            "#0d1117",
+            "#f7f9fc",
             "aria-label=\"HireShelby\"",
             "return to HireShelby",
         ] {
@@ -662,11 +666,11 @@ mod tests {
     }
 
     #[test]
-    fn api_paths_stay_on_builderlab_api_origin() {
+    fn api_paths_stay_on_accounts_api_origin() {
         let login = api_url("/v1/auth/login").unwrap();
         assert_eq!(
             login.origin().ascii_serialization(),
-            "https://app.builderlab.xyz"
+            "https://app.accounts.xyz"
         );
         assert_eq!(login.path(), "/api/goose/v1/auth/login");
     }

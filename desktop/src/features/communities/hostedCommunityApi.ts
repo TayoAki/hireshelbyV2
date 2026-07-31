@@ -4,7 +4,7 @@ export const HOSTED_COMMUNITY_SUFFIX = "communities.hireshelby.com";
 export const HOSTED_COMMUNITY_LIMIT = 3;
 export const VALID_HOSTED_COMMUNITY_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-export type BuilderlabAuth = {
+export type AccountsAuth = {
   email?: string;
   name?: string;
   expiresAt: string;
@@ -73,9 +73,9 @@ export function hostedCommunityErrorMessage(
     limit_reached: `You've reached the limit of ${HOSTED_COMMUNITY_LIMIT} hosted communities.`,
     relay_unavailable: "Community provisioning is temporarily unavailable.",
     identity_already_bound:
-      "This Builderlab account is connected to another HireShelby identity.",
+      "This HireShelby account is connected to another HireShelby identity.",
     pubkey_already_bound:
-      "This HireShelby identity is connected to another Builderlab account.",
+      "This HireShelby identity is connected to another HireShelby account.",
     not_owner: "Only the community owner can do that.",
     transferee_not_registered:
       "That person needs a connected HireShelby identity before you can transfer ownership to them.",
@@ -91,26 +91,26 @@ export function hostedCommunityRelayUrl(community: HostedCommunity) {
   return host ? `wss://${host.replace(/^wss?:\/\//, "")}` : null;
 }
 
-export function getBuilderlabAuth() {
-  return invoke<BuilderlabAuth | null>("get_builderlab_auth");
+export function getAccountsAuth() {
+  return invoke<AccountsAuth | null>("get_accounts_auth");
 }
 
-export function cancelBuilderlabLogin() {
-  return invoke<void>("cancel_builderlab_login");
+export function cancelAccountsLogin() {
+  return invoke<void>("cancel_accounts_login");
 }
 
-export function clearBuilderlabAuth() {
-  return invoke<void>("clear_builderlab_auth");
+export function clearAccountsAuth() {
+  return invoke<void>("clear_accounts_auth");
 }
 
-export function startBuilderlabLogin() {
-  return invoke<BuilderlabAuth>("start_builderlab_login");
+export function startAccountsLogin() {
+  return invoke<AccountsAuth>("start_accounts_login");
 }
 
 export async function loadHostedCommunityAccount(): Promise<HostedCommunityAccount> {
   const [identityResponse, communitiesResponse] = await Promise.all([
-    invoke<HostedIdentityResponse>("get_builderlab_nostr_identity"),
-    invoke<HostedCommunitiesResponse>("list_builderlab_communities"),
+    invoke<HostedIdentityResponse>("get_accounts_nostr_identity"),
+    invoke<HostedCommunitiesResponse>("list_accounts_communities"),
   ]);
   if (
     identityResponse.error &&
@@ -140,26 +140,23 @@ export async function loadHostedCommunityAccount(): Promise<HostedCommunityAccou
   };
 }
 
-export function bindBuilderlabIdentity() {
-  return invoke<HostedIdentityResponse>("bind_builderlab_nostr_identity");
+export function bindAccountsIdentity() {
+  return invoke<HostedIdentityResponse>("bind_accounts_nostr_identity");
 }
 
-export function deleteBuilderlabIdentity() {
-  return invoke<HostedIdentityResponse>("delete_builderlab_nostr_identity");
+export function deleteAccountsIdentity() {
+  return invoke<HostedIdentityResponse>("delete_accounts_nostr_identity");
 }
 
 export function checkHostedCommunityName(name: string) {
   return invoke<HostedCommunityAvailabilityResponse>(
-    "check_builderlab_community_name",
+    "check_accounts_community_name",
     { name },
   );
 }
 
 export function createHostedCommunity(name: string) {
-  return invoke<HostedCommunityMutationResponse>(
-    "create_builderlab_community",
-    {
-      name,
-    },
-  );
+  return invoke<HostedCommunityMutationResponse>("create_accounts_community", {
+    name,
+  });
 }

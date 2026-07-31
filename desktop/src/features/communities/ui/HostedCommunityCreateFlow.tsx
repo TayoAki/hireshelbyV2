@@ -2,22 +2,22 @@ import * as React from "react";
 import { AlertCircle, ExternalLink, LoaderCircle } from "lucide-react";
 
 import {
-  bindBuilderlabIdentity,
-  cancelBuilderlabLogin,
+  bindAccountsIdentity,
+  cancelAccountsLogin,
   checkHostedCommunityName,
-  clearBuilderlabAuth,
+  clearAccountsAuth,
   createHostedCommunity,
-  deleteBuilderlabIdentity,
-  getBuilderlabAuth,
+  deleteAccountsIdentity,
+  getAccountsAuth,
   HOSTED_COMMUNITY_LIMIT,
   HOSTED_COMMUNITY_SUFFIX,
   hostedCommunityErrorMessage,
   hostedCommunityRelayUrl,
-  type BuilderlabAuth,
+  type AccountsAuth,
   type HostedCommunity,
   type HostedNostrIdentity,
   loadHostedCommunityAccount,
-  startBuilderlabLogin,
+  startAccountsLogin,
   VALID_HOSTED_COMMUNITY_NAME,
 } from "@/features/communities/hostedCommunityApi";
 import { useCommunityOnboarding } from "@/features/onboarding/communityOnboarding";
@@ -40,7 +40,7 @@ export function HostedCommunityCreateFlow({
 }: HostedCommunityCreateFlowProps) {
   const onboarding = useCommunityOnboarding();
   const localPubkey = useIdentityQuery().data?.pubkey ?? null;
-  const [auth, setAuth] = React.useState<BuilderlabAuth | null>(null);
+  const [auth, setAuth] = React.useState<AccountsAuth | null>(null);
   const [identity, setIdentity] = React.useState<HostedNostrIdentity | null>(
     null,
   );
@@ -62,7 +62,7 @@ export function HostedCommunityCreateFlow({
 
   React.useEffect(() => {
     let active = true;
-    void getBuilderlabAuth()
+    void getAccountsAuth()
       .then(async (nextAuth) => {
         if (!active) return;
         setAuth(nextAuth);
@@ -80,7 +80,7 @@ export function HostedCommunityCreateFlow({
       loginAttempt.current += 1;
       if (signingIn.current) {
         signingIn.current = false;
-        void cancelBuilderlabLogin().catch(() => {
+        void cancelAccountsLogin().catch(() => {
           // The browser sign-in is already detached from this flow.
           // Cancellation is best-effort cleanup for the native callback.
         });
@@ -105,7 +105,7 @@ export function HostedCommunityCreateFlow({
     signingIn.current = true;
     setAction("Signing in…");
     setError(null);
-    void startBuilderlabLogin()
+    void startAccountsLogin()
       .then(async (nextAuth) => {
         if (loginAttempt.current !== attempt) return;
         setAuth(nextAuth);
@@ -125,7 +125,7 @@ export function HostedCommunityCreateFlow({
 
   const connectIdentity = () =>
     run("Connecting identity…", async () => {
-      const response = await bindBuilderlabIdentity();
+      const response = await bindAccountsIdentity();
       if (response.error) {
         throw new Error(
           hostedCommunityErrorMessage(
@@ -141,7 +141,7 @@ export function HostedCommunityCreateFlow({
 
   const signOut = () =>
     run("Signing out…", async () => {
-      await clearBuilderlabAuth();
+      await clearAccountsAuth();
       setAuth(null);
       setIdentity(null);
       setCommunities([]);
@@ -158,7 +158,7 @@ export function HostedCommunityCreateFlow({
 
   const switchToDeviceIdentity = () =>
     run("Switching identity…", async () => {
-      const released = await deleteBuilderlabIdentity();
+      const released = await deleteAccountsIdentity();
       if (released.error) {
         throw new Error(
           hostedCommunityErrorMessage(
@@ -168,12 +168,12 @@ export function HostedCommunityCreateFlow({
           ),
         );
       }
-      const bound = await bindBuilderlabIdentity();
+      const bound = await bindAccountsIdentity();
       if (bound.error) {
         await loadAccount();
         throw new Error(
           bound.error.code === "pubkey_already_bound"
-            ? "This device's HireShelby identity belongs to a different Builderlab account. Sign in with the account that already owns this identity."
+            ? "This device's HireShelby identity belongs to a different HireShelby account. Sign in with the account that already owns this identity."
             : hostedCommunityErrorMessage(
                 bound.error,
                 bound.correlation_id,
@@ -248,7 +248,7 @@ export function HostedCommunityCreateFlow({
       const relayUrl = hostedCommunityRelayUrl(response.community);
       if (!relayUrl) {
         throw new Error(
-          "The community was created, but Builderlab did not return its community URL. Try connecting it again from settings.",
+          "The community was created, but HireShelby did not return its community URL. Try connecting it again from settings.",
         );
       }
       const started = onboarding.start({
@@ -288,7 +288,7 @@ export function HostedCommunityCreateFlow({
     return (
       <div className="space-y-5">
         <p className="text-sm leading-6 text-muted-foreground">
-          Sign in with Builderlab to create and host a community. HireShelby
+          Sign in with HireShelby to create and host a community. HireShelby
           will open your browser, then bring you back here.
         </p>
         {errorBox}
@@ -297,7 +297,7 @@ export function HostedCommunityCreateFlow({
             {action === "Signing in…" ? (
               <LoaderCircle className="h-4 w-4 animate-spin" />
             ) : null}
-            {action ?? "Continue to Builderlab"}
+            {action ?? "Continue to HireShelby"}
             {action ? null : <ExternalLink className="h-4 w-4" />}
           </Button>
         </div>
@@ -309,7 +309,7 @@ export function HostedCommunityCreateFlow({
     return (
       <div className="space-y-5">
         <p className="text-sm leading-6 text-muted-foreground">
-          Connect this device’s HireShelby identity to your Builderlab account.
+          Connect this device’s HireShelby identity to your Accounts account.
           Your private key stays on this device.
         </p>
         {errorBox}
@@ -339,7 +339,7 @@ export function HostedCommunityCreateFlow({
     return (
       <div className="space-y-5">
         <p className="text-sm leading-6 text-muted-foreground">
-          This Builderlab account uses a different HireShelby identity. Switch
+          This HireShelby account uses a different HireShelby identity. Switch
           it to this device, or sign in with another account.
         </p>
         <div className="rounded-xl bg-muted/40 px-4 py-3 font-mono text-xs text-muted-foreground">

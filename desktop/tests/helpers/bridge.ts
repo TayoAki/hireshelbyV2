@@ -136,8 +136,8 @@ type MockBridgeOptions = {
   projectHeadBranch?: string;
   /** Relay NIP-11 identity used to sign authoritative repository state. */
   relaySelf?: string | null;
-  /** Builderlab account returned by hosted-community onboarding. Null/omitted = signed out. */
-  builderlabAuth?: { email?: string; name?: string; expiresAt: string } | null;
+  /** Accounts account returned by hosted-community onboarding. Null/omitted = signed out. */
+  accountsAuth?: { email?: string; name?: string; expiresAt: string } | null;
   /** Optional policy returned by the native join-policy discovery command. */
   joinPolicy?: {
     terms_markdown?: string;
@@ -145,10 +145,10 @@ type MockBridgeOptions = {
     age_attestation_required: boolean;
     version: string;
   } | null;
-  /** Bound Builderlab Nostr identity. Null/omitted = not linked yet. */
-  builderlabIdentity?: { npub?: string; pubkey_hex?: string } | null;
-  /** Communities owned by the mocked Builderlab account. */
-  builderlabCommunities?: Array<{
+  /** Bound Accounts Nostr identity. Null/omitted = not linked yet. */
+  accountsIdentity?: { npub?: string; pubkey_hex?: string } | null;
+  /** Communities owned by the mocked Accounts account. */
+  accountsCommunities?: Array<{
     id?: string;
     name?: string;
     slug?: string;

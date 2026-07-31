@@ -1,7 +1,7 @@
 #![recursion_limit = "256"] // Deep Tauri command futures exceed the default layout query depth.
+mod accounts;
 mod app_state;
 mod archive;
-mod builderlab;
 mod commands;
 mod deep_link;
 mod egress_guard;
@@ -33,8 +33,8 @@ mod tray_menu;
 mod util;
 #[cfg(target_os = "linux")]
 pub mod webkit_rendering;
+use accounts::*;
 use app_state::{build_app_state, resolve_persisted_identity, AppState};
-use builderlab::*;
 use commands::*;
 use deep_link::{
     acknowledge_pending_community_deep_link, handle_deep_link_url,
@@ -363,8 +363,8 @@ pub fn run() {
         .manage(build_app_state())
         .manage(ClipboardState::new())
         .manage(PendingCommunityDeepLinks::default())
-        .manage(BuilderlabSession::default())
-        .manage(BuilderlabLogin::default())
+        .manage(AccountsSession::default())
+        .manage(AccountsLogin::default())
         .manage(commands::pairing::PairingHandle::new())
         .setup(move |app| {
             let app_handle = app.handle().clone();
@@ -651,19 +651,19 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             take_pending_community_deep_link,
             acknowledge_pending_community_deep_link,
-            start_builderlab_login,
-            cancel_builderlab_login,
-            get_builderlab_auth,
-            clear_builderlab_auth,
-            get_builderlab_nostr_identity,
-            bind_builderlab_nostr_identity,
-            delete_builderlab_nostr_identity,
-            list_builderlab_communities,
-            check_builderlab_community_name,
-            create_builderlab_community,
-            archive_builderlab_community,
-            unarchive_builderlab_community,
-            transfer_builderlab_community,
+            start_accounts_login,
+            cancel_accounts_login,
+            get_accounts_auth,
+            clear_accounts_auth,
+            get_accounts_nostr_identity,
+            bind_accounts_nostr_identity,
+            delete_accounts_nostr_identity,
+            list_accounts_communities,
+            check_accounts_community_name,
+            create_accounts_community,
+            archive_accounts_community,
+            unarchive_accounts_community,
+            transfer_accounts_community,
             title_bar_double_click,
             get_identity,
             get_nsec,
