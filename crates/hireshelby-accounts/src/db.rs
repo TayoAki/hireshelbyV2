@@ -98,3 +98,22 @@ pub async fn insert_default_plan(
     .await?;
     Ok(())
 }
+
+/// All communities for an account, newest first, including archived ones so the
+/// client can show and unarchive them.
+pub async fn list_communities(
+    pool: &PgPool,
+    account_id: Uuid,
+) -> Result<Vec<(Uuid, String, String, bool)>, DbError> {
+    let rows: Vec<(Uuid, String, String, Option<chrono::DateTime<chrono::Utc>>)> = sqlx::query_as(
+        "SELECT id, slug, host, archived_at FROM communities \
+         WHERE account_id = $1 ORDER BY created_at DESC",
+    )
+    .bind(account_id)
+    .fetch_all(pool)
+    .await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, slug, host, archived_at)| (id, slug, host, archived_at.is_some()))
+        .collect())
+}

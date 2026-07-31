@@ -19,6 +19,20 @@ use std::fmt;
 
 use nostr::Keys;
 
+/// Minimal percent-encoding for query values. Avoids a dependency for two call
+/// sites; only characters that are unsafe in a query string are escaped.
+fn urlencode(value: &str) -> String {
+    value
+        .bytes()
+        .map(|b| match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                (b as char).to_string()
+            }
+            other => format!("%{other:02X}"),
+        })
+        .collect()
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum ConfigError {
     #[error("config: {0} is required")]
@@ -42,6 +56,13 @@ pub struct Config {
     /// `communities.hireshelby.com`. A community named `acme` becomes
     /// `acme.communities.hireshelby.com`.
     pub community_domain: String,
+    /// WorkOS AuthKit client id. When unset, hosted auth is not configured and
+    /// login falls back to developer mode (if enabled).
+    pub workos_client_id: Option<String>,
+    /// Enables the local developer sign-in form, which issues a session for any
+    /// email without proving ownership. A complete authentication bypass, so it
+    /// defaults to off and must be opted into explicitly.
+    pub dev_login_enabled: bool,
 }
 
 impl fmt::Debug for Config {
@@ -55,6 +76,10 @@ impl fmt::Debug for Config {
             .field("operator_pubkey", &self.operator_public_key_hex())
             .field("operator_secret_key", &"<redacted>")
             .field("community_domain", &self.community_domain)
+            .field("workos_configured", &self.workos_client_id.is_some())
+            // Surfaced on purpose: an operator must be able to see from the
+            // startup log that the auth bypass is not on in production.
+            .field("dev_login_enabled", &self.dev_login_enabled)
             .finish()
     }
 }
@@ -97,11 +122,30 @@ impl Config {
                 "HIRESHELBY_COMMUNITY_DOMAIN",
                 "communities.hireshelby.com",
             ),
+            workos_client_id: std::env::var("HIRESHELBY_WORKOS_CLIENT_ID")
+                .ok()
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
+            dev_login_enabled: std::env::var("HIRESHELBY_DEV_LOGIN")
+                .map(|v| v == "true" || v == "1")
+                .unwrap_or(false),
         })
     }
 
     pub fn operator_public_key_hex(&self) -> String {
         self.operator_secret_key.public_key().to_hex()
+    }
+
+    /// WorkOS AuthKit authorize URL for this login attempt, or `None` when
+    /// hosted auth is not configured.
+    pub fn workos_authorize_url(&self, return_to: &str) -> Option<String> {
+        let client_id = self.workos_client_id.as_ref()?;
+        Some(format!(
+            "https://api.workos.com/user_management/authorize?response_type=code\
+             &provider=authkit&client_id={}&redirect_uri={}",
+            urlencode(client_id),
+            urlencode(return_to)
+        ))
     }
 
     /// Full host for a community slug, e.g. `acme` →
@@ -126,7 +170,42 @@ mod tests {
             relay_api_base_url: "http://localhost:3030".into(),
             operator_secret_key: test_keys(),
             community_domain: "communities.hireshelby.com".into(),
+            workos_client_id: None,
+            dev_login_enabled: false,
         }
+    }
+
+    #[test]
+    fn workos_url_is_none_until_a_client_id_is_configured() {
+        // Without this, login would redirect to a malformed WorkOS URL instead
+        // of falling back to developer mode.
+        assert!(cfg()
+            .workos_authorize_url("http://127.0.0.1:5551/cb")
+            .is_none());
+    }
+
+    #[test]
+    fn workos_url_percent_encodes_the_loopback_redirect() {
+        let mut c = cfg();
+        c.workos_client_id = Some("client_123".into());
+        let url = c
+            .workos_authorize_url("http://127.0.0.1:5551/callback/abc")
+            .expect("configured");
+        assert!(url.starts_with("https://api.workos.com/user_management/authorize?"));
+        assert!(
+            url.contains("redirect_uri=http%3A%2F%2F127.0.0.1%3A5551%2Fcallback%2Fabc"),
+            "redirect_uri must be encoded or it truncates the query: {url}"
+        );
+        assert!(
+            !url.contains(' '),
+            "no whitespace may leak into the URL: {url}"
+        );
+    }
+
+    #[test]
+    fn dev_login_is_off_unless_explicitly_enabled() {
+        // It is a full authentication bypass; the default must be closed.
+        assert!(!cfg().dev_login_enabled);
     }
 
     #[test]

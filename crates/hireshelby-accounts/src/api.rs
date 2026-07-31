@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    db,
+    auth, db,
     operator::ProvisionRequest,
     plan::{check_seat_available, PlanTier, QuotaDecision},
     AppState,
@@ -163,6 +163,64 @@ pub async fn create_community(
         StatusCode::CREATED,
         Json(CreateCommunityResponse { community_id, host }),
     ))
+}
+
+#[derive(Debug, Serialize)]
+pub struct HostedCommunity {
+    pub id: Uuid,
+    pub slug: String,
+    pub host: String,
+    /// WebSocket URL the desktop client connects to. Derived from the host so
+    /// the client never has to compose it (and cannot get it wrong).
+    pub relay_url: String,
+    pub archived: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ListCommunitiesResponse {
+    pub communities: Vec<HostedCommunity>,
+}
+
+/// Lists the signed-in account's communities.
+///
+/// Scoped by the session rather than by a caller-supplied account id — taking
+/// the id from the request would let any authenticated user enumerate another
+/// account's workspaces.
+pub async fn list_communities(
+    State(state): State<Arc<AppState>>,
+    headers: axum::http::HeaderMap,
+) -> Result<Json<ListCommunitiesResponse>, (StatusCode, Json<ApiError>)> {
+    let user = auth::authenticate(state.as_ref(), &headers)
+        .await
+        .map_err(|_| {
+            (
+                StatusCode::UNAUTHORIZED,
+                Json(ApiError {
+                    error: "unauthorized".into(),
+                    message: "sign in to list communities".into(),
+                }),
+            )
+        })?;
+
+    let rows = db::list_communities(&state.db, user.account_id)
+        .await
+        .map_err(|error| {
+            tracing::error!(%error, "communities: list failed");
+            upstream_error(error.to_string())
+        })?;
+
+    Ok(Json(ListCommunitiesResponse {
+        communities: rows
+            .into_iter()
+            .map(|(id, slug, host, archived)| HostedCommunity {
+                relay_url: format!("wss://{host}"),
+                id,
+                slug,
+                host,
+                archived,
+            })
+            .collect(),
+    }))
 }
 
 #[derive(Debug, Deserialize)]

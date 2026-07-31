@@ -9,6 +9,7 @@
 //! replay protection. This service holds the operator key and calls it.
 
 mod api;
+mod auth;
 mod config;
 mod db;
 mod operator;
@@ -66,7 +67,13 @@ async fn health(State(state): State<Arc<AppState>>) -> (StatusCode, Json<Health>
 fn router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/health", get(health))
+        .route("/v1/auth/login", get(auth::login))
+        .route("/v1/auth/dev-login", post(auth::dev_login))
+        .route("/v1/auth/login/exchange", post(auth::exchange))
+        .route("/v1/auth/me", get(auth::me))
+        .route("/v1/auth/logout", post(auth::logout))
         .route("/v1/communities", post(api::create_community))
+        .route("/v1/communities/list", get(api::list_communities))
         .route(
             "/v1/communities/{community_id}/seats/check",
             post(api::check_seats),
