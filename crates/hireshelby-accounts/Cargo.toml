@@ -1,0 +1,41 @@
+[package]
+name = "hireshelby-accounts"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "HireShelby control plane — accounts, identity binding, community provisioning, and plan quotas"
+
+[[bin]]
+name = "hireshelby-accounts"
+path = "src/main.rs"
+
+[dependencies]
+# Signing operator requests to the relay reuses the same primitives the relay
+# verifies with, so the wire contract cannot drift between the two.
+buzz-core = { workspace = true }
+nostr = { workspace = true }
+
+axum = { workspace = true }
+tokio = { workspace = true }
+tower-http = { workspace = true }
+sqlx = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+base64 = { workspace = true }
+url = { workspace = true }
+
+# Redis TLS pulls in both aws-lc-rs and ring transitively, so rustls cannot
+# auto-select a provider. Install ring explicitly at startup, mirroring
+# buzz-relay and buzz-admin.
+rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }

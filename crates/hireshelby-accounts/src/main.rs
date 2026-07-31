@@ -1,0 +1,118 @@
+//! HireShelby control plane.
+//!
+//! Replaces the upstream Builderlab dependency. It owns accounts, Nostr
+//! identity binding, community provisioning, and plan quotas — the surfaces
+//! the desktop client previously reached at `app.builderlab.xyz`.
+//!
+//! Provisioning itself is delegated to the relay's `/operator/communities`
+//! API, which already implements NIP-98 auth, an operator allowlist, and
+//! replay protection. This service holds the operator key and calls it.
+
+mod api;
+mod config;
+mod db;
+mod operator;
+mod plan;
+
+use std::sync::Arc;
+
+use axum::{
+    extract::State,
+    http::StatusCode,
+    routing::{get, post},
+    Json, Router,
+};
+use config::Config;
+use operator::OperatorClient;
+
+pub struct AppState {
+    pub config: Config,
+    pub operator: OperatorClient,
+    pub db: sqlx::PgPool,
+}
+
+#[derive(serde::Serialize)]
+struct Health {
+    status: &'static str,
+    /// Advertised so an operator can confirm the deployment is running the key
+    /// the relay allowlists, without exposing the secret.
+    operator_pubkey: String,
+    database: &'static str,
+}
+
+async fn health(State(state): State<Arc<AppState>>) -> (StatusCode, Json<Health>) {
+    let database = match sqlx::query("SELECT 1").fetch_one(&state.db).await {
+        Ok(_) => "up",
+        Err(error) => {
+            tracing::warn!(%error, "control plane: database health check failed");
+            "down"
+        }
+    };
+    let status_code = if database == "up" {
+        StatusCode::OK
+    } else {
+        StatusCode::SERVICE_UNAVAILABLE
+    };
+    (
+        status_code,
+        Json(Health {
+            status: if database == "up" { "ok" } else { "degraded" },
+            operator_pubkey: state.config.operator_public_key_hex(),
+            database,
+        }),
+    )
+}
+
+fn router(state: Arc<AppState>) -> Router {
+    Router::new()
+        .route("/health", get(health))
+        .route("/v1/communities", post(api::create_community))
+        .route(
+            "/v1/communities/{community_id}/seats/check",
+            post(api::check_seats),
+        )
+        .with_state(state)
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
+        )
+        .init();
+
+    // Redis TLS pulls in both aws-lc-rs and ring, so rustls cannot pick a
+    // provider on its own. Mirrors buzz-relay and buzz-admin.
+    let _ = rustls::crypto::ring::default_provider().install_default();
+
+    let config = Config::from_env()?;
+    // Debug is redacted; see config::Config's Debug impl.
+    tracing::info!(?config, "control plane: configuration loaded");
+
+    let db = sqlx::postgres::PgPoolOptions::new()
+        .max_connections(16)
+        .connect(&config.database_url)
+        .await?;
+    tracing::info!("control plane: Postgres connected");
+
+    sqlx::migrate!("./migrations").run(&db).await?;
+    tracing::info!("control plane: migrations applied");
+
+    let operator = OperatorClient::new(
+        config.relay_api_base_url.clone(),
+        config.operator_secret_key.clone(),
+    );
+
+    let bind_addr = config.bind_addr.clone();
+    let state = Arc::new(AppState {
+        config,
+        operator,
+        db,
+    });
+
+    let listener = tokio::net::TcpListener::bind(&bind_addr).await?;
+    tracing::info!(addr = %bind_addr, "control plane: listening");
+    axum::serve(listener, router(state)).await?;
+    Ok(())
+}
